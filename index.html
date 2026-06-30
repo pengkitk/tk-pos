@@ -1,0 +1,3683 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TK POS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+:root {
+  --bg:#0f1117; --bg2:#181c27; --bg3:#1f2436; --border:#2a3050;
+  --accent:#3b82f6; --accent2:#60a5fa; --green:#22c55e; --red:#ef4444;
+  --yellow:#f59e0b; --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b;
+  --radius:10px; --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;}
+
+/* LOGIN */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f1117,#1a2340);}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 40px;width:380px;box-shadow:var(--shadow);}
+.brand{font-family:'IBM Plex Sans Thai',sans-serif;font-size:28px;font-weight:700;color:var(--accent2);letter-spacing:2px;text-align:center;}
+.brand-sub{font-size:13px;color:var(--text3);text-align:center;margin:4px 0 32px;}
+.dev-badge{background:rgba(245,158,11,.15);border:1px solid var(--yellow);color:var(--yellow);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;display:inline-block;margin:0 auto 16px;display:block;text-align:center;}
+
+/* INPUTS */
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+input,select,textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:var(--bg2);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius);border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#2563eb;}
+.btn-success{background:var(--green);color:#fff;}.btn-success:hover{background:#16a34a;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);}
+.btn-sm{padding:6px 12px;font-size:13px;}.btn-full{width:100%;justify-content:center;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* LAYOUT */
+#app{display:none;min-height:100vh;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:700;font-size:18px;color:var(--accent2);letter-spacing:1px;}
+.topbar-user{display:flex;align-items:center;gap:12px;}
+.user-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--accent2);}
+.main-content{max-width:1200px;margin:0 auto;padding:24px 20px;}
+
+/* STEPS */
+.steps{display:flex;margin-bottom:28px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.step{flex:1;padding:12px 16px;text-align:center;font-size:13px;color:var(--text3);border-right:1px solid var(--border);}
+.step:last-child{border-right:none;}
+.step.active{background:var(--accent);color:#fff;font-weight:600;}
+.step.done{background:var(--bg3);color:var(--green);}
+.step-num{display:block;font-size:11px;opacity:.7;margin-bottom:2px;}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+/* CUSTOMER */
+.search-row{display:flex;gap:8px;margin-bottom:12px;}
+.search-row input{flex:1;}
+.customer-list{max-height:280px;overflow-y:auto;}
+.customer-item{padding:12px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;margin-bottom:4px;}
+.customer-item:hover{background:var(--bg3);border-color:var(--border);}
+.customer-name{font-weight:600;font-size:15px;}
+.customer-info{font-size:13px;color:var(--text3);margin-top:2px;}
+.selected-customer{background:rgba(59,130,246,.08);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;display:none;}
+
+/* TYPE */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.type-card{border:2px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;text-align:center;transition:all .2s;}
+.type-card:hover{border-color:var(--accent);}
+.type-card.selected{border-color:var(--accent);background:rgba(59,130,246,.1);}
+.type-card .icon{font-size:28px;margin-bottom:8px;}
+.type-card .lbl{font-weight:600;}
+.type-card .desc{font-size:12px;color:var(--text3);margin-top:4px;}
+
+/* PRODUCTS */
+.product-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;max-height:340px;overflow-y:auto;}
+.product-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;text-align:left;font-family:'Sarabun',sans-serif;color:var(--text);transition:all .15s;width:100%;}
+.product-btn:hover{border-color:var(--accent);background:rgba(59,130,246,.05);}
+.product-btn .pname{font-size:12px;font-weight:600;line-height:1.4;}
+.product-btn .pprice{font-size:12px;color:var(--accent2);margin-top:4px;}
+.product-btn .punit{font-size:11px;color:var(--text3);}
+
+/* ORDER */
+.order-table{width:100%;border-collapse:collapse;font-size:14px;}
+.order-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text3);font-size:12px;font-weight:500;text-transform:uppercase;}
+.order-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.order-table tr:last-child td{border-bottom:none;}
+.order-table input{width:70px;text-align:right;padding:5px 7px;font-size:13px;}
+
+/* PAYMENT */
+.payment-method{display:flex;gap:8px;margin-bottom:16px;}
+.method-btn{flex:1;padding:12px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;text-align:center;transition:all .2s;}
+.method-btn.selected{border-color:var(--accent);background:rgba(59,130,246,.1);color:var(--accent2);}
+.cash-calc{background:var(--bg3);border-radius:var(--radius);padding:16px;text-align:center;display:none;}
+.cash-change{font-size:24px;font-weight:700;color:var(--green);margin-top:8px;}
+
+/* SUMMARY */
+.summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row .lbl{color:var(--text2);}
+.summary-row .val{font-weight:600;}
+.summary-row.total .val{color:var(--accent2);font-size:18px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+
+/* SUGGEST */
+.suggest-box{background:rgba(245,158,11,.1);border:1px solid var(--yellow);border-radius:var(--radius);padding:16px;margin-bottom:16px;display:none;}
+.suggest-title{font-size:13px;font-weight:600;color:var(--yellow);margin-bottom:10px;}
+.suggest-items{display:flex;gap:8px;flex-wrap:wrap;}
+.suggest-item{background:var(--bg3);border:1px solid var(--yellow);border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer;color:var(--text);font-family:'Sarabun',sans-serif;}
+.suggest-item:hover{background:rgba(245,158,11,.15);}
+
+/* MISC */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.section-title{font-size:18px;font-weight:700;}
+.qt-number{font-family:'IBM Plex Sans Thai',monospace;color:var(--accent2);font-weight:700;font-size:16px;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.flex-row{display:flex;align-items:center;gap:8px;}
+.flex-1{flex:1;}
+.hidden{display:none!important;}
+.mt-8{margin-top:8px;}.mt-16{margin-top:16px;}
+.grand-total{font-size:22px;font-weight:700;color:var(--accent2);}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--accent2);}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;font-size:14px;z-index:999;display:none;box-shadow:var(--shadow);}
+.toast.show{display:block;animation:slideIn .3s ease;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.error-msg{color:var(--red);font-size:13px;margin-top:8px;display:none;}
+@media(max-width:640px){
+  .two-col,.three-col{grid-template-columns:1fr;}
+  .type-grid{grid-template-columns:1fr 1fr;}
+  .product-grid{grid-template-columns:1fr 1fr;}
+  .main-content{padding:16px 12px;}
+  .steps{font-size:11px;}
+}
+
+/* ===== PRODUCT SELECTOR (light style) ===== */
+.ps-tabs{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+.ps-tab{flex:1;padding:10px 0;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;text-align:center;cursor:pointer;background:var(--bg3);color:var(--text2);border:none;border-right:1px solid var(--border);transition:all .15s;}
+.ps-tab:last-child{border-right:none;}
+.ps-tab.active{background:var(--accent);color:#fff;font-weight:600;}
+.ps-panel{}
+.ps-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.ps-section-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.ps-extra-row{padding:8px 0;border-bottom:1px solid var(--border);}
+.ps-extra-row:last-child{border-bottom:none;}
+.ps-extra-detail{margin-top:8px;padding:10px;background:var(--bg3);border-radius:8px;}
+.ps-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text);}
+.ps-check input{width:auto;accent-color:var(--accent);}
+.ps-info-bar{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--accent2);line-height:1.6;}
+.ps-info-bar b{font-weight:600;color:var(--text);}
+/* small action buttons inside selector */
+.ps-btn{padding:6px 12px;font-size:13px;font-weight:400;}
+.ps-btn.on{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important;font-weight:600;}
+.ps-xbtn{padding:5px 10px;font-size:12px;font-weight:400;}
+.ps-xbtn.on{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important;}
+.ms-total-preview{font-size:16px;font-weight:700;color:var(--accent2);min-width:60px;}
+
+/* Product list rows */
+.prod-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid transparent;transition:border-color .15s;}
+.prod-row:hover{border-color:var(--border);}
+.prod-row .pr-name{flex:1;font-size:13px;font-weight:600;line-height:1.4;}
+.prod-row .pr-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.prod-row .pr-price{font-size:13px;color:var(--accent2);min-width:70px;text-align:right;}
+.prod-row .pr-qty{width:52px;text-align:right;font-size:13px;padding:5px 7px;}
+.prod-row .pr-unit{font-size:12px;color:var(--text3);min-width:24px;}
+.prod-cat{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);padding:8px 4px 4px;}
+
+/* ซ่อนลูกศรขึ้นลงของ input number */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+input[type=number] { -moz-appearance:textfield; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="brand">TK METAL</div>
+    <div class="brand-sub">ระบบขายหน้าร้าน</div>
+    <div class="dev-badge" style="display:none">🛠 DEV MODE — ข้อมูล Mock</div>
+    <div class="form-group">
+      <label>ชื่อผู้ใช้</label>
+      <input type="text" id="loginUser" placeholder="admin" value="admin">
+    </div>
+    <div class="form-group">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="loginPass" placeholder="1234" value="1234">
+    </div>
+    <div class="error-msg" id="loginError">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+    <div style="margin-top:20px">
+      <button class="btn btn-primary btn-full" onclick="doLogin()">เข้าสู่ระบบ</button>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text3);text-align:center">
+      พร้อม deploy → เปลี่ยน <code style="color:var(--yellow)">USE_MOCK = false</code>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">⬡ TK POS <span id="devTag" style="font-size:11px;color:var(--yellow);font-weight:400;margin-left:8px">DEV</span></div>
+    <div class="topbar-user">
+      <button class="btn btn-ghost btn-sm" onclick="showQTList()" style="margin-right:4px">📋 QT</button>
+      <button class="btn btn-ghost btn-sm" onclick="showCashPage()" style="margin-right:4px">💰 เงิน</button>
+      <span class="user-badge" id="userBadge">—</span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <!-- CASH PAGE -->
+  <div id="cashPage" style="display:none" class="main-content">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <h2 style="font-size:18px;font-weight:700;margin:0">💰 ลิ้นชักเงินสด</h2>
+      <button class="btn btn-ghost btn-sm" onclick="hideCashPage()">← กลับ</button>
+    </div>
+
+    <!-- บันทึกรับเงิน -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">+ บันทึกรับเงิน</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:12px;color:var(--text3)">ประเภท</label>
+          <select id="cashType" style="width:100%;margin-top:4px">
+            <option value="มัดจำ">มัดจำ</option>
+            <option value="ชำระครบ">ชำระครบ</option>
+            <option value="ชำระส่วนที่เหลือ">ชำระส่วนที่เหลือ</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:120px">
+          <label style="font-size:12px;color:var(--text3)">จำนวนเงิน (บาท)</label>
+          <input type="number" id="cashAmount" placeholder="0" min="0" style="width:100%;margin-top:4px">
+        </div>
+        <div style="flex:1;min-width:120px">
+          <label style="font-size:12px;color:var(--text3)">เลข QT (ถ้ามี)</label>
+          <input type="text" id="cashQTNo" placeholder="QT6805-001" style="width:100%;margin-top:4px">
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:12px;color:var(--text3)">หมายเหตุ</label>
+          <input type="text" id="cashNote" placeholder="เช่น ลูกค้าสมชาย" style="width:100%;margin-top:4px">
+        </div>
+        <button class="btn btn-success" onclick="recordCashEntry()" style="white-space:nowrap">บันทึก</button>
+      </div>
+    </div>
+
+    <!-- สรุปลิ้นชัก -->
+    <div id="cashSummaryWrap"></div>
+  </div>
+
+  <!-- QT LIST PAGE -->
+  <div id="qtListPage" style="display:none" class="main-content">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <h2 style="font-size:18px;font-weight:700;margin:0">📋 รายการใบเสนอราคา</h2>
+      <button class="btn btn-ghost btn-sm" onclick="hideQTList()">← กลับ</button>
+    </div>
+    <!-- filter bar -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <input type="text" id="qtSearch" placeholder="🔍 ค้นหา QT / ชื่อลูกค้า / เบอร์" style="flex:1;min-width:180px" oninput="filterQTList()">
+      <select id="qtStatusFilter" onchange="filterQTList()" style="width:140px">
+        <option value="">ทุกสถานะ</option>
+        <option value="รอชำระ">รอชำระ</option>
+        <option value="มัดจำแล้ว">มัดจำแล้ว</option>
+        <option value="ชำระครบ">ชำระครบ</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="loadQTList()">🔄 รีเฟรช</button>
+    </div>
+    <!-- list -->
+    <div id="qtListWrap" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <!-- UPDATE QT MODAL -->
+  <div class="modal-overlay" id="updateQTModal">
+    <div class="modal">
+      <div class="modal-title">✏️ อัพเดทสถานะ QT</div>
+      <div id="updateQTInfo" style="font-size:13px;color:var(--text3);margin-bottom:12px"></div>
+      <div class="form-group">
+        <label class="form-label">สถานะการชำระ</label>
+        <select id="updateQTStatus" style="width:100%">
+          <option value="รอชำระ">รอชำระ</option>
+          <option value="มัดจำแล้ว">มัดจำแล้ว</option>
+          <option value="ชำระครบ">ชำระครบ</option>
+          <option value="ยกเลิก">ยกเลิก</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">ยอดมัดจำ (บาท)</label>
+        <input type="number" id="updateQTDeposit" value="0" min="0">
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">วันจัดส่ง</label>
+        <input type="date" id="updateQTDelivery">
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">หมายเหตุ</label>
+        <input type="text" id="updateQTNote" placeholder="เช่น ลูกค้าจะโทรกลับ">
+      </div>
+      <div id="updateQTBalance" style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:8px;font-size:13px"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('updateQTModal')">ยกเลิก</button>
+        <button class="btn btn-success" onclick="confirmUpdateQT()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content" id="main-content-wrap">
+    <div class="steps">
+      <div class="step active" id="step1Btn"><span class="step-num">01</span>ลูกค้า & ประเภท</div>
+      <div class="step" id="step2Btn"><span class="step-num">02</span>เลือกสินค้า</div>
+      <div class="step" id="step3Btn"><span class="step-num">03</span>ชำระเงิน</div>
+      <div class="step" id="step4Btn"><span class="step-num">04</span>สรุป & บันทึก</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="step1">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">🔍 ค้นหาลูกค้า</div>
+          <div class="search-row">
+            <input type="text" id="customerSearch" placeholder="ชื่อ / เบอร์ / LINE ID / เลขที่" oninput="searchCustomers()">
+            <button class="btn btn-ghost btn-sm" onclick="openModal('addCustomerModal')">+ ใหม่</button>
+          </div>
+          <div class="customer-list" id="customerList">
+            <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">พิมพ์ค้นหาลูกค้า</div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">👤 ลูกค้าที่เลือก</div>
+            <div id="noCustomer" style="color:var(--text3);font-size:13px;text-align:center;padding:16px">ยังไม่ได้เลือกลูกค้า</div>
+            <div class="selected-customer" id="selectedCustomerBox">
+              <div style="font-weight:700;font-size:16px" id="selCustName"></div>
+              <div style="font-size:13px;color:var(--text2);margin-top:4px;white-space:pre-line" id="selCustInfo"></div>
+              <div class="mt-8"><button class="btn btn-ghost btn-sm" onclick="clearCustomer()">เปลี่ยน</button></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📄 ประเภทใบเสนอราคา</div>
+            <div class="type-grid">
+              <div class="type-card" id="typePerson" onclick="selectType('person')">
+                <div class="icon">👤</div>
+                <div class="lbl">บุคคลธรรมดา</div>
+                <div class="desc">ใบเสนอราคา</div>
+              </div>
+              <div class="type-card" id="typeCompany" onclick="selectType('company')">
+                <div class="icon">🏢</div>
+                <div class="lbl">นิติบุคคล</div>
+                <div class="desc">ใบกำกับภาษี VAT 7%</div>
+              </div>
+            </div>
+          </div>
+          <div class="card hidden" id="companyFields">
+            <div class="card-title">🏢 ข้อมูลบริษัท</div>
+            <div class="form-group"><label>ชื่อบริษัท / นิติบุคคล</label><input type="text" id="companyName" placeholder="บริษัท ... จำกัด"></div>
+            <div class="form-group"><label>ที่อยู่สำหรับออกใบกำกับ</label><textarea id="taxAddress" rows="2"></textarea></div>
+            <div class="form-group"><label>เลขประจำตัวผู้เสียภาษี</label><input type="text" id="taxId" placeholder="0000000000000"></div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="goStep2()">ถัดไป → เลือกสินค้า</button>
+
+          <!-- ข้อความพิเศษ -->
+          <div class="card" style="margin-top:12px">
+            <!-- โลเคชั่นหน้างาน -->
+            <div class="form-group" style="margin-bottom:12px">
+              <label style="font-size:13px;color:var(--text2);margin-bottom:6px;display:block">📍 โลเคชั่น / ที่อยู่หน้างาน</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+                <button class="btn ps-xbtn" id="loc_btn_store" onclick="setJobSite(this,'store')">รับหน้าร้าน</button>
+                <button class="btn ps-xbtn" id="loc_btn_cust" onclick="setJobSite(this,'customer')">ใช้ที่อยู่ลูกค้า</button>
+                <button class="btn ps-xbtn" id="loc_btn_custom" onclick="setJobSite(this,'custom')">ระบุเอง</button>
+              </div>
+              <div id="loc_custom_wrap" style="display:none">
+                <textarea id="jobSiteCustom" rows="2" placeholder="กรอกที่อยู่หน้างาน..." oninput="updateJobSite()"></textarea>
+              </div>
+              <div id="loc_preview" style="font-size:12px;color:var(--text3);margin-top:4px;display:none"></div>
+            </div>
+
+            <div style="height:1px;background:var(--border);margin-bottom:12px"></div>
+
+            <!-- หมายเหตุพิเศษ -->
+            <div class="form-group" style="margin-bottom:12px">
+              <label style="font-size:13px;color:var(--text2);margin-bottom:6px;display:block">✏️ หมายเหตุพิเศษ (ปรากฏในใบเสนอราคา)</label>
+              <textarea id="specialNoteInput" rows="2" placeholder="เช่น ราคานี้ยืนยัน 7 วัน..." style="width:100%;box-sizing:border-box" oninput="S.specialNote=this.value.trim()"></textarea>
+            </div>
+            <div style="height:1px;background:var(--border);margin-bottom:12px"></div>
+
+            <!-- รับหน้าร้าน note -->
+            <label class="ps-check" style="margin-bottom:8px">
+              <input type="checkbox" id="chk_pickup" onchange="togglePickupNote()">
+              แจ้งเตือนเชือกผูกสินค้า
+            </label>
+            <div id="pickup_note_box" class="hidden" style="background:rgba(245,158,11,.1);border:1px solid var(--yellow);border-radius:8px;padding:10px;font-size:13px;color:var(--yellow)">
+              *รับของหน้าร้าน กรุณาเตรียมเชือกสำหรับผูกสินค้ามาด้วยครับ
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step2" class="hidden">
+      <div class="section-header">
+        <div>
+          <div class="section-title">เลือกสินค้า</div>
+          <div style="font-size:13px;color:var(--text3);margin-top:4px">ใบเสนอราคา: <span class="qt-number" id="qtNumber">—</span></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="showStep(1)">← ย้อนกลับ</button>
+      </div>
+
+      <div class="two-col" style="align-items:start">
+        <!-- LEFT: Product Selector -->
+        <div>
+          <!-- Group Tabs -->
+          <div class="ps-tabs">
+            <button class="ps-tab active" id="pTab1" onclick="switchPTab(1)">🏗 เมทัลชีท</button>
+            <button class="ps-tab" id="pTab2" onclick="switchPTab(2)">📐 ครอบ</button>
+            <button class="ps-tab" id="pTab3" onclick="switchPTab(3)">🔩 สินค้าอื่น</button>
+          </div>
+
+          <!-- TAB 1: เมทัลชีท -->
+          <div id="pPanel1" class="ps-panel card">
+            <div class="ps-section-label">เกรดเหล็ก</div>
+            <div class="bgrp" id="ms_grade"></div>
+
+            <div id="ms_type_wrap" class="ps-section hidden">
+              <div class="ps-section-label">แบบ</div>
+              <div class="bgrp" id="ms_type"></div>
+            </div>
+
+            <div id="ms_thick_wrap" class="ps-section hidden">
+              <div class="ps-section-label">ความหนา</div>
+              <div class="bgrp" id="ms_thick"></div>
+            </div>
+
+            <div id="ms_color_wrap" class="ps-section hidden">
+              <div class="ps-section-label">สี</div>
+              <div class="bgrp" id="ms_color"></div>
+            </div>
+
+            <div id="ms_lon_wrap" class="ps-section hidden">
+              <div class="ps-section-label">ลอน / รูปแบบ</div>
+              <div class="bgrp" id="ms_lon"></div>
+            </div>
+
+            <!-- เตือนขายเป็นคู่ (แสดงเมื่อเลือกลอน 300/333/444) -->
+            <div id="pair_warn" style="display:none;margin:6px 0;padding:7px 10px;background:rgba(245,158,11,.1);border:1px solid var(--yellow);border-radius:8px;font-size:12px;color:var(--yellow)">
+              ⚠️ ขายเป็นจำนวนคู่
+            </div>
+
+            <!-- sub-type สำหรับสเนปล็อค 300 -->
+            <div id="ms_snap_wrap" class="ps-section hidden">
+              <div class="ps-section-label">แบบลอน</div>
+              <div class="bgrp">
+                <button class="btn ps-btn" onclick="setSnapType(this,'ลอนเรียบ')">ลอนเรียบ</button>
+                <button class="btn ps-btn" onclick="setSnapType(this,'ลอนตะเข็บคู่')">ลอนตะเข็บคู่</button>
+                <button class="btn ps-btn" onclick="setSnapType(this,'ลอนสายฟ้า')">ลอนสายฟ้า</button>
+                <button class="btn ps-btn" onclick="setSnapType(this,'ยังไม่ระบุ')">ยังไม่ระบุ</button>
+              </div>
+            </div>
+
+            <!-- sub-type สำหรับแผ่นเรียบ 914 -->
+            <div id="ms_914_wrap" class="ps-section hidden">
+              <div class="ps-section-label">ขนาดที่ต้องการ</div>
+              <div class="bgrp" id="ms_914_btns">
+                <button class="btn ps-btn" onclick="set914Type(this,'914')">914 เต็มแผ่น</button>
+                <button class="btn ps-btn" onclick="set914Type(this,'457')">457 (÷2)</button>
+                <button class="btn ps-btn" onclick="set914Type(this,'304')">304 (÷3)</button>
+                <button class="btn ps-btn" onclick="set914Type(this,'608')">608 (÷3×2)</button>
+                <button class="btn ps-btn" onclick="set914Type(this,'custom')">ระบุหน้ากว้าง</button>
+              </div>
+              <!-- custom width input -->
+              <div id="ms_914_custom" style="display:none;margin-top:8px">
+                <div style="font-size:12px;color:var(--text3);margin-bottom:6px">กรอกหน้ากว้างที่ต้องการ (ซม.) สูงสุด 4 ช่อง</div>
+                <div style="display:flex;flex-direction:column;gap:4px" id="ms_914_custom_rows"></div>
+                <div id="ms_914_stock_hint" style="display:none;margin-top:6px;padding:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:8px;font-size:12px;color:var(--accent2)"></div>
+              </div>
+              <!-- price preview -->
+              <div id="ms_914_price_hint" style="display:none;margin-top:6px;font-size:12px;color:var(--yellow)"></div>
+            </div>
+
+            <!-- Service extras for ลอนหลังคา 760 / ลอนสเปน 750 -->
+            <div id="ms_extras_wrap" class="ps-section hidden">
+              <div class="ps-section-label">บริการเสริม <span style="font-weight:400;color:var(--text3)">(ไม่บังคับ)</span></div>
+
+              <!-- PU -->
+              <div class="ps-extra-row" id="ex_pu_row">
+                <label class="ps-check"><input type="checkbox" id="ex_pu" onchange="toggleExtra('pu')"> PU โฟม</label>
+                <div id="ex_pu_detail" class="ps-extra-detail hidden">
+                  <div class="bgrp" style="margin-bottom:6px">
+                    <button class="btn ps-xbtn" data-pu="25" onclick="setPU(this,'25')">25 มม.</button>
+                    <button class="btn ps-xbtn" data-pu="50" onclick="setPU(this,'50')">50 มม.</button>
+                    <button class="btn ps-xbtn" data-pu="50p" onclick="setPU(this,'50p')">50 มม. พรีเมียม</button>
+                  </div>
+                  <div class="ps-section-label" style="margin-top:6px">ท้องลอนสี</div>
+                  <div class="bgrp" id="pu_color_btns">
+                    <button class="btn ps-xbtn" onclick="setPUColor(this,'ขาว')">ขาว</button>
+                    <button class="btn ps-xbtn" onclick="setPUColor(this,'ดำ')">ดำ</button>
+                    <button class="btn ps-xbtn" onclick="setPUColor(this,'เงิน')">เงิน</button>
+                    <button class="btn ps-xbtn" onclick="setPUColor(this,'ลายไม้เข้ม +5')">ลายไม้เข้ม</button>
+                    <button class="btn ps-xbtn" onclick="setPUColor(this,'ลายไม้อ่อน +5')">ลายไม้อ่อน</button>
+                    <button class="btn ps-xbtn" id="pu_nocolor_btn" onclick="setPUColorNone(this)">ยังไม่ระบุสี</button>
+                  </div>
+                  <div class="ps-section-label" style="margin-top:8px">การเว้นชาย/หัว</div>
+                  <div class="bgrp" id="pu_eave_btns">
+                    <button class="btn ps-xbtn" id="pu_eave_full" onclick="setPUEave(this,'full')">โฟมเต็มแผ่น</button>
+                    <button class="btn ps-xbtn" id="pu_eave_eave" onclick="setPUEave(this,'eave')">เว้นชาย</button>
+                    <button class="btn ps-xbtn" id="pu_eave_head" onclick="setPUEave(this,'head')">เว้นหัว</button>
+                    <button class="btn ps-xbtn" id="pu_eave_none" onclick="setPUEave(this,'none')">ยังไม่ระบุ</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-top:6px" id="pu_eave_input_wrap">
+                    <span style="font-size:13px;color:var(--text2)" id="pu_eave_label">เว้นชาย</span>
+                    <input type="number" id="ex_pu_eave" placeholder="ซม." style="width:80px">
+                    <span style="font-size:13px;color:var(--text3)">ซม.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PE -->
+              <div class="ps-extra-row" id="ex_pe_row">
+                <label class="ps-check"><input type="checkbox" id="ex_pe" onchange="toggleExtra('pe')"> ฉนวน PE 5 มม.</label>
+                <div id="ex_pe_detail" class="ps-extra-detail hidden">
+                  <div class="ps-section-label" style="margin-top:6px">เว้นชาย</div>
+                  <div class="bgrp" id="pe_eave_btns">
+                    <button class="btn ps-xbtn" onclick="setPEEave(this,'full')">โฟมเต็มแผ่น</button>
+                    <button class="btn ps-xbtn" onclick="setPEEave(this,'none')">ยังไม่ระบุ</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-top:6px" id="pe_eave_input_wrap">
+                    <span style="font-size:13px;color:var(--text2)">ระบุ</span>
+                    <input type="number" id="ex_pe_eave" placeholder="ซม." style="width:80px">
+                    <span style="font-size:13px;color:var(--text3)">ซม.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ย้ำโค้ง -->
+              <div class="ps-extra-row" id="ex_bend_row">
+                <label class="ps-check"><input type="checkbox" id="ex_bend" onchange="toggleExtra('bend')"> ย้ำโค้ง</label>
+                <div id="ex_bend_detail" class="ps-extra-detail hidden">
+                  <div class="bgrp" style="margin-bottom:8px">
+                    <button class="btn ps-xbtn" onclick="setBendType(this,'ทั่วไป')">ทั่วไป</button>
+                    <button class="btn ps-xbtn" onclick="setBendType(this,'โดม')">โดม</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+                    <span style="font-size:13px;color:var(--text2)">จำนวนย้ำ</span>
+                    <input type="number" id="ex_bend_count" placeholder="ย้ำ" style="width:60px" oninput="calcBendExtra()">
+                    <span style="font-size:12px;color:var(--text3)">ครั้ง</span>
+                    <span style="font-size:13px;color:var(--text2)">ระยะ</span>
+                    <input type="number" id="ex_bend_gap" placeholder="ซม." style="width:60px" oninput="calcBendExtra()">
+                    <span style="font-size:12px;color:var(--text3)">ซม./ครั้ง</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+                    <span style="font-size:13px;color:var(--text2)">เว้นชาย</span>
+                    <input type="number" id="ex_bend_eave" placeholder="ซม." style="width:60px" oninput="calcBendExtra()">
+                    <span style="font-size:12px;color:var(--text3)">ซม.</span>
+                  </div>
+                  <div id="bend_calc_bar" style="display:none;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--accent2)"></div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:4px">💡 กรอกความยาวส่วนตรงในช่องจำนวนแผ่น โปรแกรมจะบวกย้ำให้อัตโนมัติ</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- qty + price + add -->
+            <div id="ms_qty_wrap" class="ps-section hidden">
+
+              <!-- mode selector -->
+              <div style="display:flex;gap:6px;margin-bottom:10px">
+                <button class="btn ps-btn on" id="msModeSheet" onclick="setMSMode('sheet',this)">📋 แจ้งจำนวนแผ่น</button>
+                <button class="btn ps-btn" id="msModeArea" onclick="setMSMode('area',this)">📐 แจ้งพื้นที่</button>
+              </div>
+
+              <!-- MODE: แจ้งจำนวนแผ่น -->
+              <div id="ms_mode_sheet">
+                <div id="ms_sheet_rows" style="display:flex;flex-direction:column;gap:6px"></div>
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                  <button class="btn btn-ghost btn-sm" onclick="addSheetRow()">+ เพิ่มรายแผ่น</button>
+                  <button class="btn btn-ghost btn-sm" onclick="togglePasteBox()" id="paste_btn">📋 วาง text</button>
+                </div>
+                <!-- paste box -->
+                <div id="paste_box" style="display:none;margin-top:8px">
+                  <textarea id="paste_input" rows="5" placeholder="วางข้อมูลตรงนี้ เช่น&#10;5.50 1&#10;5.40 1&#10;5.30 1&#10;(ยาว(ม.) จำนวนแผ่น)" style="font-family:monospace;font-size:13px;resize:vertical"></textarea>
+                  <div style="display:flex;gap:6px;margin-top:6px">
+                    <button class="btn btn-primary btn-sm" onclick="importPasteText()">นำเข้า</button>
+                    <button class="btn btn-ghost btn-sm" onclick="togglePasteBox()">ยกเลิก</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MODE: แจ้งพื้นที่ -->
+              <div id="ms_mode_area" style="display:none">
+                <div id="ms_area_rows" style="display:flex;flex-direction:column;gap:6px"></div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addAreaRow()">+ เพิ่มพื้นที่</button>
+                <!-- แสดงผลคำนวณ — format เหมือน mode แผ่น -->
+                <div id="ms_area_sheet_preview" style="display:none;margin-top:8px;padding:10px;background:var(--bg3);border-radius:8px">
+                  <div id="ms_area_sheet_rows" style="font-size:13px;color:var(--accent2)"></div>
+                  <div id="ms_area_sheet_note" style="font-size:12px;color:var(--yellow);margin-top:4px"></div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+                <span style="font-size:13px;color:var(--text2)">ราคา/เมตร</span>
+                <input type="number" id="ms_price_input" value="0" min="0" style="width:90px" oninput="msCalcPrice()">
+                <span style="font-size:13px;color:var(--text3)">รวม:</span>
+                <span class="ms-total-preview" id="ms_total_preview">฿0</span>
+              </div>
+              <button class="btn btn-success" style="margin-top:12px;width:100%" onclick="addMSItem()">+ เพิ่มในรายการ</button>
+            </div>
+          </div>
+
+          <!-- TAB 2: ครอบ -->
+          <div id="pPanel2" class="ps-panel card hidden">
+            <div class="ps-section-label">ประเภทครอบ</div>
+            <div class="bgrp" id="crop_type_btns">
+              <button class="btn ps-btn" onclick="setCropType(this,'ครอบจั่ว')">ครอบจั่ว</button>
+              <button class="btn ps-btn" onclick="setCropType(this,'ครอบข้าง')">ครอบข้าง</button>
+              <button class="btn ps-btn" onclick="setCropType(this,'ครอบชนผนัง')">ครอบชนผนัง</button>
+              <button class="btn ps-btn" onclick="setCropType(this,'ครอบบานเกร็ด')">ครอบบานเกร็ด</button>
+              <button class="btn ps-btn" onclick="setCropType(this,'ครอบพับตามแบบ')">ครอบพับตามแบบ</button>
+            </div>
+
+            <div id="crop_size_wrap" class="ps-section hidden">
+              <div class="ps-section-label">ขนาดแผ่น</div>
+              <div class="bgrp" id="crop_size_btns"></div>
+            </div>
+
+            <div id="crop_style_wrap" class="ps-section hidden">
+              <div class="ps-section-label">แบบที่</div>
+              <div class="bgrp" id="crop_style_btns"></div>
+              <div id="crop_img_wrap" style="margin-top:6px"></div>
+            </div>
+
+            <div id="crop_steel_wrap" class="ps-section hidden">
+              <div class="ps-section-label">เกรดเหล็ก</div>
+              <div class="bgrp" id="crop_grade"></div>
+              <div id="crop_type_wrap" class="ps-section hidden">
+                <div class="ps-section-label">แบบ</div>
+                <div class="bgrp" id="crop_type"></div>
+              </div>
+              <div id="crop_thick_wrap" class="ps-section hidden">
+                <div class="ps-section-label">ความหนา</div>
+                <div class="bgrp" id="crop_thick"></div>
+              </div>
+              <div id="crop_color_wrap" class="ps-section hidden">
+                <div class="ps-section-label">สี</div>
+                <div class="bgrp" id="crop_color"></div>
+              </div>
+            </div>
+
+            <div id="crop_calc_wrap" class="ps-section hidden">
+
+              <!-- ครอบข้าง: บริการเพิ่มเติม -->
+              <div id="crop_side_wrap" class="hidden" style="margin-bottom:10px">
+                <div class="ps-section-label">บริการเพิ่มเติม ครอบข้าง</div>
+                <div>
+                  <label class="ps-check"><input type="checkbox" id="crop_svc_bend" onchange="toggleCropBend()"> ย้ำโค้งตามแบบ</label>
+                  <div id="crop_svc_bend_side_wrap" style="display:none;padding-left:20px;margin-top:6px;gap:16px;flex-wrap:wrap">
+                    <label class="ps-check"><input type="checkbox" id="crop_svc_bend_left"> ซ้าย</label>
+                    <label class="ps-check"><input type="checkbox" id="crop_svc_bend_right"> ขวา</label>
+                  </div>
+                </div>
+              </div>
+              <!-- mode tabs — ระบุเองขึ้นก่อน -->
+              <div style="display:flex;gap:6px;margin-bottom:10px">
+                <button class="btn ps-btn on" id="cropModeManual" onclick="setCropMode('manual',this)">✏️ ระบุเอง</button>
+                <button class="btn ps-btn" id="cropModeCalc" onclick="setCropMode('calc',this)">📐 คำนวณจากความยาว</button>
+              </div>
+
+              <!-- MODE: ระบุเอง -->
+              <div id="crop_mode_manual">
+                <div id="crop_sheet_rows" style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px"></div>
+                <button class="btn btn-ghost btn-sm" onclick="addCropSheetRow()">+ เพิ่มรายการ</button>
+                <div class="ps-info-bar" id="crop_manual_bar" style="margin-top:8px;display:none"></div>
+              </div>
+
+              <!-- MODE: คำนวณ -->
+              <div id="crop_mode_calc" style="display:none">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                  <span style="font-size:13px;color:var(--text2)">ความยาวรวมหน้างาน</span>
+                  <input type="number" id="crop_length" placeholder="เมตร" style="width:90px" oninput="calcCrop()">
+                  <span style="font-size:13px;color:var(--text2)">เมตร</span>
+                </div>
+                <div class="ps-info-bar" id="crop_result_bar" style="display:none"></div>
+              </div>
+
+              <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+                <span style="font-size:13px;color:var(--text2)">ราคา/เมตร (แก้ได้)</span>
+                <input type="number" id="crop_price_input" value="0" style="width:90px" oninput="calcCropTotal()">
+                <span class="ms-total-preview" id="crop_total_preview">฿0</span>
+              </div>
+              <button class="btn btn-success" style="margin-top:12px;width:100%" onclick="addCropItem()">+ เพิ่มในรายการ</button>
+            </div>
+          </div>
+
+          <!-- TAB 3: สินค้าอื่น -->
+          <div id="pPanel3" class="ps-panel card hidden">
+
+            <!-- แนะนำจากรายการล่าสุด -->
+            <div id="screw_suggest_wrap" class="hidden">
+              <div class="ps-section-label" style="color:var(--yellow)">🔩 แนะนำสำหรับรายการล่าสุด</div>
+              <div id="screw_suggest_btns" style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px"></div>
+              <div class="divider"></div>
+            </div>
+
+            <!-- Category filter + search -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="other_cat_btns">
+              <button class="filter-btn active" onclick="setOtherCat(this,'')">ทั้งหมด</button>
+            </div>
+            <input type="text" id="otherSearch" placeholder="🔍 ค้นหาสินค้า..." oninput="filterOtherProducts()" style="margin-bottom:10px">
+            <div id="other_product_list" style="display:flex;flex-direction:column;gap:4px;max-height:380px;overflow-y:auto"></div>
+
+            <div class="divider"></div>
+            <div class="ps-section-label">รายการพิเศษ (free text)</div>
+            <div class="flex-row" style="flex-wrap:wrap;gap:6px">
+              <input type="text" id="freeItemName" placeholder="ชื่อสินค้า/บริการ" class="flex-1" style="min-width:140px">
+              <input type="number" id="freeItemPrice" placeholder="ราคา" style="width:80px">
+              <input type="text" id="freeItemUnit" placeholder="หน่วย" style="width:60px">
+              <button class="btn btn-ghost btn-sm" onclick="addFreeItem()">เพิ่ม</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Order list -->
+        <div class="card">
+          <div class="card-title">🛒 รายการสั่งซื้อ <span class="badge badge-blue" id="itemCount">0 รายการ</span></div>
+          <div id="orderEmpty" style="text-align:center;padding:24px;color:var(--text3);font-size:13px">ยังไม่มีรายการ</div>
+          <div id="orderTableWrap" class="hidden">
+            <table class="order-table">
+              <thead><tr><th>รายการ</th><th>จำนวน</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>รวม</th><th></th></tr></thead>
+              <tbody id="orderBody"></tbody>
+            </table>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-row">
+            <span style="font-size:14px;color:var(--text2)">🚚 ค่าขนส่ง</span>
+            <input type="number" id="shippingCost" value="0" style="width:100px;text-align:right" oninput="calcTotal()">
+            <span style="font-size:13px;color:var(--text3)">บาท</span>
+          </div>
+          <div class="flex-row" style="margin-top:8px">
+            <span style="font-size:14px;color:var(--text2)">🏷 ส่วนลด</span>
+            <input type="number" id="discountAmount" value="0" style="width:100px;text-align:right" oninput="calcTotal()">
+            <span style="font-size:13px;color:var(--text3)">บาท</span>
+          </div>
+          <div style="text-align:right;margin-top:12px">
+            <div style="font-size:13px;color:var(--text3)">ยอดรวม</div>
+            <div class="grand-total" id="grandTotalDisplay">฿0</div>
+            <div id="vatDisplay" class="hidden" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+          </div>
+          <div class="mt-16"><button class="btn btn-primary btn-full" onclick="goStep3()">ถัดไป → ชำระเงิน</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="step3" class="hidden">
+      <div class="section-header">
+        <div class="section-title">ชำระเงิน</div>
+        <button class="btn btn-ghost btn-sm" onclick="showStep(2)">← ย้อนกลับ</button>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">💳 วิธีชำระเงิน</div>
+          <div class="payment-method" style="flex-wrap:wrap">
+            <button class="method-btn" id="methodCash" onclick="selectMethod('cash')">💵 เงินสด</button>
+            <button class="method-btn" id="methodTransfer" onclick="selectMethod('transfer')">📱 โอนเงิน</button>
+            <button class="method-btn" id="methodSite" onclick="selectMethod('site')">🏗 รับหน้างาน</button>
+            <button class="method-btn" id="methodCheque" onclick="selectMethod('cheque')">📋 เช็ค</button>
+          </div>
+          <div class="form-group">
+            <label>สถานะการชำระ</label>
+            <select id="payStatus">
+              <option value="รอชำระ">รอชำระ</option>
+              <option value="มัดจำแล้ว">มัดจำแล้ว</option>
+              <option value="ชำระครบ">ชำระครบ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ยอดมัดจำ (ถ้ามี)</label>
+            <input type="number" id="depositAmount" value="0" oninput="calcChange()">
+          </div>
+          <div class="cash-calc" id="cashCalc">
+            <div style="font-size:13px;color:var(--text3)">รับเงินมา</div>
+            <input type="number" id="cashReceived" placeholder="0" oninput="calcChange()" style="font-size:20px;text-align:center;margin:8px 0">
+            <div style="font-size:13px;color:var(--text3)">เงินทอน</div>
+            <div class="cash-change" id="cashChange">฿0</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 สรุปยอด</div>
+          <div id="step3Summary"></div>
+          <div class="mt-16"><button class="btn btn-success btn-full" onclick="goStep4()">ถัดไป → สรุป & บันทึก</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div id="step4" class="hidden">
+      <div class="section-header">
+        <div class="section-title">สรุปใบเสนอราคา</div>
+        <button class="btn btn-ghost btn-sm" onclick="showStep(3)">← ย้อนกลับ</button>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">📄 รายละเอียด</div>
+          <div id="finalSummary"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">💾 บันทึก</div>
+          <div style="font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.8">
+            เลขที่: <strong class="qt-number" id="qtNumberFinal">—</strong><br>
+            <span id="mockNote" style="font-size:12px;color:var(--yellow)">⚠️ DEV MODE: ไม่บันทึกจริง</span>
+          </div>
+          <button class="btn btn-success btn-full" id="saveBtn" onclick="saveQuotation()" style="font-size:17px;padding:14px">
+            💾 บันทึกใบเสนอราคา
+          </button>
+          <div class="mt-8" style="text-align:center">
+            <button class="btn btn-ghost btn-sm" onclick="newOrder()">🔄 เริ่มรายการใหม่</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: เพิ่มลูกค้า -->
+<div class="modal-overlay" id="addCustomerModal">
+  <div class="modal">
+    <div class="modal-title">➕ เพิ่มลูกค้าใหม่</div>
+    <div class="three-col">
+      <div class="form-group">
+        <label>คำนำหน้า</label>
+        <select id="newPrefix"><option value="">-</option><option>คุณ</option><option>พี่</option><option>นาย</option><option>นาง</option><option>นางสาว</option></select>
+      </div>
+      <div class="form-group" style="grid-column:span 2"><label>ชื่อ *</label><input type="text" id="newFirstName" placeholder="ชื่อจริง"></div>
+    </div>
+    <div class="form-group"><label>นามสกุล</label><input type="text" id="newLastName"></div>
+    <div class="two-col">
+      <div class="form-group"><label>เบอร์โทร</label><input type="tel" id="newTel" placeholder="0xx-xxx-xxxx"></div>
+      <div class="form-group"><label>LINE ID</label><input type="text" id="newLineId"></div>
+    </div>
+    <div class="form-group"><label>ที่อยู่ / หน้างาน</label><textarea id="newAddress" rows="2" placeholder="ที่อยู่จัดส่ง หรือ รับหน้าร้าน"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addCustomerModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveNewCustomer()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ใส่จำนวน/ราคา -->
+<div class="modal-overlay" id="addItemModal">
+  <div class="modal">
+    <div class="modal-title" id="addItemTitle">เพิ่มสินค้า</div>
+    <div class="two-col">
+      <div class="form-group"><label>จำนวน</label><input type="number" id="addItemQty" value="1" min="0.1" step="0.1"></div>
+      <div class="form-group"><label>หน่วย</label><input type="text" id="addItemUnit"></div>
+    </div>
+    <div class="form-group"><label>ราคา/หน่วย (บาท)</label><input type="number" id="addItemPrice" value="0"></div>
+    <div class="form-group"><label>หมายเหตุ (ถ้ามี)</label><input type="text" id="addItemNote" placeholder="รายละเอียดเพิ่มเติม"></div>
+    <div id="addItemWarranty" style="font-size:12px;color:var(--text3);padding:10px;background:var(--bg3);border-radius:8px;white-space:pre-line;min-height:20px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addItemModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="confirmAddItem()">เพิ่มในรายการ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG — เปลี่ยนตรงนี้ตอน deploy จริง
+// ============================================================
+var USE_MOCK = false;
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybHU0WjBz1NewMlvfF2nit0fgFDEGwUPDdTz81OFlVr7ixg1LqcSoVmbm7ASURTMHK/exec';
+
+// ============================================================
+// MOCK DATA
+// ============================================================
+var MOCK_USERS = [
+  { username:'admin', password:'1234', name:'นายเพ่งกิจ คิดสร้าง', role:'Sales Executive' },
+  { username:'sale1', password:'1234', name:'พนักงานขาย 1', role:'Sales' },
+];
+
+var MOCK_CUSTOMERS = [
+  { no:1, prefix:'พี่', firstName:'สมชาย', lastName:'ใจดี', tel:'081-234-5678', lineId:'somchai', address:'หน้างาน: บางกอก นนทบุรี' },
+  { no:2, prefix:'คุณ', firstName:'มาลี', lastName:'สวยงาม', tel:'089-876-5432', lineId:'malee99', address:'รับหน้าร้าน' },
+  { no:3, prefix:'นาย', firstName:'วิชัย', lastName:'รวยมาก', tel:'062-111-2222', lineId:'', address:'หน้างาน: ภูเก็ต เมือง' },
+  { no:4, prefix:'', firstName:'บริษัท ก้าวหน้า', lastName:'จำกัด', tel:'076-333-4444', lineId:'kaona_co', address:'123 ถ.พระราม 9 กรุงเทพ' },
+  { no:5, prefix:'พี่', firstName:'ประยุทธ์', lastName:'', tel:'093-555-6666', lineId:'prayut55', address:'หน้างาน: กะทู้ ภูเก็ต' },
+];
+
+var MOCK_PRODUCTS = [
+  // เหล็กนอก อลูซิงค์
+  { 'รหัสสินค้า':'MS-NK-AZ-020','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.20','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.20','สี':'ไม่มีสี','ราคา/หน่วย':65,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก ประกัน 2 ปี โปรดเก็บใบเสร็จกรณีเคลมสินค้า\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-AZ-025','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.25','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.25','สี':'ไม่มีสี','ราคา/หน่วย':75,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก ประกัน 2 ปี โปรดเก็บใบเสร็จกรณีเคลมสินค้า\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-AZ-030','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.30','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.30','สี':'ไม่มีสี','ราคา/หน่วย':90,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก มอก. ประกัน 10 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-AZ-035','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.35','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.35','สี':'ไม่มีสี','ราคา/หน่วย':110,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก มอก. ประกัน 10 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-AZ-040','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.40','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.40','สี':'ไม่มีสี','ราคา/หน่วย':135,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก มอก. ประกัน 10 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-AZ-047','ชื่อสินค้า':'เมทัลชีท เหล็กนอก อลูซิงค์ 0.47','ประเภทเหล็ก':'เหล็กนอก','ความหนา':'0.47','สี':'ไม่มีสี','ราคา/หน่วย':160,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก มอก. ประกัน 10 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  // เหล็กนอก สี
+  { 'รหัสสินค้า':'MS-NK-C-030-BK','ชื่อสินค้า':'เมทัลชีท เหล็กนอก สี 0.30 สีดำด้าน','ประเภทเหล็ก':'เหล็กนอก สี','ความหนา':'0.30','สี':'สีดำด้าน','ราคา/หน่วย':105,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก ประกัน 2 ปี โปรดเก็บใบเสร็จกรณีเคลมสินค้า\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-C-030-WH','ชื่อสินค้า':'เมทัลชีท เหล็กนอก สี 0.30 สีขาว','ประเภทเหล็ก':'เหล็กนอก สี','ความหนา':'0.30','สี':'สีขาว','ราคา/หน่วย':105,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก ประกัน 2 ปี โปรดเก็บใบเสร็จกรณีเคลมสินค้า\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-NK-C-030-RB','ชื่อสินค้า':'เมทัลชีท เหล็กนอก สี 0.30 สีแดงอิฐ','ประเภทเหล็ก':'เหล็กนอก สี','ความหนา':'0.30','สี':'สีแดงอิฐ','ราคา/หน่วย':105,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'SWM เหล็กนอก ประกัน 2 ปี โปรดเก็บใบเสร็จกรณีเคลมสินค้า\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  // บลูสโคป
+  { 'รหัสสินค้า':'MS-BS-AZ-030','ชื่อสินค้า':'เมทัลชีท บลูสโคป อลูซิงค์ 0.30','ประเภทเหล็ก':'บลูสโคป','ความหนา':'0.30','สี':'ไม่มีสี','ราคา/หน่วย':125,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'เหล็กบลูสโคป ประกัน 12 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-BS-AZ-035','ชื่อสินค้า':'เมทัลชีท บลูสโคป อลูซิงค์ 0.35','ประเภทเหล็ก':'บลูสโคป','ความหนา':'0.35','สี':'ไม่มีสี','ราคา/หน่วย':155,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'เหล็กบลูสโคป ประกัน 12 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'MS-BS-ZN-047','ชื่อสินค้า':'เมทัลชีท บลูสโคป Zincalume AZ150 0.47','ประเภทเหล็ก':'บลูสโคป','ความหนา':'0.47','สี':'ไม่มีสี','ราคา/หน่วย':295,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'เหล็กบลูสโคป Zincalume AZ150 ประกัน 20 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  // บลูสโคป สี — 0.35 / 0.40 / 0.47 (ต่อท้ายด้วย concat)
+].concat((function(){
+    var BS_W = 'เหล็กบลูสโคป ประกัน 12 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด';
+    var colors = [
+      ['AW','สีขาว Asian White'],['CO','สีส้ม Citrus Orange'],['CR','สีแดงอิฐ Castle Red'],
+      ['NB','สีน้ำตาล Natural Brown'],['PB','สีครีม Peanut Butter'],['TR','สีแดง HG Tiger Red'],
+      ['MY','สีเหลือง MG Yellow'],['SB','สีฟ้า Shampoo Blue'],['NV','สีน้ำเงิน Nuvo Blue'],
+      ['BG','สีเขียวสด Bright Green'],['BCG','สีเขียว Bangchak Green'],['BNL','สีบานาน่าลีฟ Banana Leaf'],
+      ['SGR','สีเทาอ่อน Shutter Grey'],['LGR','สีเทาเข้ม Leader Grey']
+    ];
+    var thicks = ['0.35','0.40','0.47'];
+    var rows = [];
+    thicks.forEach(function(t){
+      colors.forEach(function(c){
+        rows.push({'รหัสสินค้า':'MS-BS-C-'+t.replace('.','')+'H-'+c[0],'ชื่อสินค้า':'เมทัลชีท บลูสโคป สี '+t+' '+c[1],'ประเภทเหล็ก':'บลูสโคป สี','ความหนา':t,'สี':c[1],'ราคา/หน่วย':0,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':BS_W,'จับคู่กับ (รหัส)':''});
+      });
+    });
+    return rows;
+  })()).concat((function(){
+    var CB_W = 'เหล็กบลูสโคป Colorbond ประกัน 35 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด';
+    var colors = ['Thredbo White','Aiyara White','Off White','In Light Grey','Burnt Almond','Desert Wind','Jade Green','Alloy Grey','Custard Orange','International Brown','Skytone Blue','Bangkok Red','Tobac Brown','Army Green','Ocean Blue','Posh Grey','Carbonic Grey','Forest Green'];
+    var thicks = ['0.39','0.51'];
+    var rows = [];
+    thicks.forEach(function(t){
+      colors.forEach(function(c){
+        rows.push({'รหัสสินค้า':'MS-CB-'+t.replace('.','')+'H-'+c.replace(/ /g,''),'ชื่อสินค้า':'เมทัลชีท Colorbond '+t+' '+c,'ประเภทเหล็ก':'Colorbond','ความหนา':t,'สี':c,'ราคา/หน่วย':0,'หน่วย':'เมตร','มีสต๊อค':false,'หมายเหตุ/รับประกัน':CB_W,'จับคู่กับ (รหัส)':''});
+      });
+    });
+    return rows;
+  })()).concat([
+  // BSI
+  { 'รหัสสินค้า':'MS-BSI-AZ-035','ชื่อสินค้า':'เมทัลชีท BSI AZ150 อลูซิงค์ 0.35','ประเภทเหล็ก':'BSI','ความหนา':'0.35','สี':'ไม่มีสี','ราคา/หน่วย':145,'หน่วย':'เมตร','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'เหล็กนอก BSI AZ150 มอก. ประกัน 20 ปี\nเงื่อนไขเป็นไปตามผู้ผลิต / นำเข้า กำหนด','จับคู่กับ (รหัส)':''},
+  // Services
+  { 'รหัสสินค้า':'SV-PU1','ชื่อสินค้า':'บุฉนวน PU โฟม 1 นิ้ว','ประเภทเหล็ก':'Service','ราคา/หน่วย':0,'หน่วย':'เมตร','มีสต๊อค':false,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':'SC-3IN-HEAD|SC-3IN-WOOD'},
+  { 'รหัสสินค้า':'SV-PU2','ชื่อสินค้า':'บุฉนวน PU โฟม 2 นิ้ว','ประเภทเหล็ก':'Service','ราคา/หน่วย':0,'หน่วย':'เมตร','มีสต๊อค':false,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':'SC-4IN-HEAD|SC-4IN-WOOD'},
+  { 'รหัสสินค้า':'SV-PE','ชื่อสินค้า':'บุฉนวน PE','ประเภทเหล็ก':'Service','ราคา/หน่วย':0,'หน่วย':'เมตร','มีสต๊อค':false,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SV-BEND','ชื่อสินค้า':'บริการย้ำโค้ง','ประเภทเหล็ก':'Service','ราคา/หน่วย':0,'หน่วย':'ครั้ง','มีสต๊อค':false,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  // สกรู
+  { 'รหัสสินค้า':'SC-2IN','ชื่อสินค้า':'สกรูแปเหล็ก 2 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':170,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-3IN','ชื่อสินค้า':'สกรูแปเหล็ก 3 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':220,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-3IN-HEAD','ชื่อสินค้า':'สกรูแปเหล็ก 3 นิ้ว หัวสี (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':280,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'หัวสีราคาแพงกว่าหัวธรรมดา 60 บาท/ถุง','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-4IN','ชื่อสินค้า':'สกรูแปเหล็ก 4 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':260,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-4IN-HEAD','ชื่อสินค้า':'สกรูแปเหล็ก 4 นิ้ว หัวสี (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':320,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'หัวสีราคาแพงกว่าหัวธรรมดา 60 บาท/ถุง','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-2IN-PRE','ชื่อสินค้า':'สกรูแปเหล็กสำเร็จรูป 2 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':190,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-3IN-WOOD','ชื่อสินค้า':'สกรูแปไม้ 3 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':200,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+  { 'รหัสสินค้า':'SC-4IN-WOOD','ชื่อสินค้า':'สกรูแปไม้ 4 นิ้ว (ถุง 100 ตัว)','ประเภทเหล็ก':'สกรู','ราคา/หน่วย':230,'หน่วย':'ถุง','มีสต๊อค':true,'หมายเหตุ/รับประกัน':'','จับคู่กับ (รหัส)':''},
+]);
+
+var mockQtCounter = { person: 0, company: 0 };
+
+// ============================================================
+// API LAYER — สลับ mock / real ได้จาก USE_MOCK
+// ============================================================
+function api(action, params, onSuccess, onError) {
+  if (USE_MOCK) {
+    setTimeout(function() {
+      var r = mockHandler(action, params);
+      if (r && r.success) onSuccess(r);
+      else (onError || function(m){ showToast('❌ '+m,'error'); })(r ? r.message : 'error');
+    }, 120);
+  } else {
+    // real Apps Script via fetch
+    // Apps Script requires form data with redirect follow for cross-origin
+    var formData = new FormData();
+    formData.append('payload', JSON.stringify(Object.assign({action:action}, params)));
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: formData
+    }).then(function(res){ return res.text(); })
+      .then(function(text){
+        try {
+          var r = JSON.parse(text);
+          if(r.success) onSuccess(r);
+          else (onError||function(m){showToast('❌ '+m,'error');})(r.message);
+        } catch(e) {
+          (onError||function(m){showToast('❌ '+m,'error');})('Parse error: '+text.substring(0,100));
+        }
+      })
+      .catch(function(e){ (onError||function(m){showToast('❌ '+m,'error');})(e.message); });
+  }
+}
+
+// ============================================================
+// MOCK HANDLER
+// ============================================================
+function mockHandler(action, p) {
+  if (action === 'login') {
+    var u = MOCK_USERS.find(function(x){ return x.username===p.username && x.password===p.password; });
+    return u ? {success:true, user:u} : {success:false, message:'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'};
+  }
+  if (action === 'getProducts') return {success:true, products:MOCK_PRODUCTS};
+  if (action === 'getCustomers') {
+    var q = (p.query||'').toLowerCase();
+    return {success:true, customers: MOCK_CUSTOMERS.filter(function(c){
+      return ((c.prefix||'')+(c.firstName||'')+(c.lastName||'')).toLowerCase().includes(q)
+          || (c.tel||'').includes(q) || (c.lineId||'').toLowerCase().includes(q);
+    })};
+  }
+  if (action === 'addCustomer') {
+    var newNo = MOCK_CUSTOMERS.length + 1;
+    MOCK_CUSTOMERS.push(Object.assign({no:newNo}, p));
+    return {success:true, no:newNo};
+  }
+  if (action === 'getQuotationNo') {
+    var now = new Date();
+    var yy = ((now.getFullYear()+543)+'').slice(-2);
+    var mm = String(now.getMonth()+1).padStart(2,'0');
+    var pfx = yy+'/'+mm+'/';
+    mockQtCounter[p.type] = (mockQtCounter[p.type]||0) + 1;
+    return {success:true, quotationNo: pfx+String(mockQtCounter[p.type]).padStart(2,'0'), sheetId:'MOCK'};
+  }
+  if (action === 'saveQuotation') {
+    console.log('[MOCK] saveQuotation', p);
+    return {success:true, quotationNo: p.quotationNo};
+  }
+  return {success:false, message:'Unknown action'};
+}
+
+// ============================================================
+// STATE
+// ============================================================
+var S = {
+  user:null, products:[], customer:null,
+  quotationType:null, quotationNo:null, sheetId:null,
+  items:[], payMethod:null, payStatus:'รอชำระ', deposit:0, shipping:0, discount:0,
+  pickupNote:false, jobSite:null, specialNote:''
+};
+var currentProduct = null;
+var searchTimer = null;
+var activeTypeFilter = '';
+
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin() {
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value.trim();
+  if (!u||!p) return;
+  api('login', {username:u, password:p}, function(r) {
+    S.user = r.user;
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('userBadge').textContent = r.user.name;
+    if (!USE_MOCK) document.getElementById('devTag').style.display = 'none';
+    loadProducts();
+  }, function() {
+    document.getElementById('loginError').style.display = 'block';
+  });
+}
+
+function doLogout() {
+  S = {user:null,products:[],customer:null,quotationType:null,quotationNo:null,sheetId:null,items:[],payMethod:null,payStatus:'รอชำระ',deposit:0,shipping:0};
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key==='Enter' && document.getElementById('loginPage').style.display!=='none') doLogin();
+});
+
+// ============================================================
+// PRODUCT SELECTOR STATE
+// ============================================================
+var PS = {
+  grade:null, steelType:null, color:null, thick:null, lon:null,
+  basePrice:0, lonPrice:0,
+  puOn:false, puSize:null, puColor:null, puColorExtra:0, puEave:null,
+  peOn:false, peEave:null,
+  bendOn:false, bendType:null, bendCount:null, bendGap:null, bendEave:null,
+  cropType:null, cropStyle:null, cropSize:null,
+  cropGrade:null, cropSteelType:null, cropColor:null, cropThick:null,
+  cropBasePrice:0,
+};
+
+// sheet rows for metalsheet multi-size entry
+var MS_SHEETS = []; // [{len, count, note}]
+
+function initSheetRows() {
+  MS_SHEETS = [{len:'', count:'', note:''}];
+  renderSheetRows();
+}
+
+function setMSMode(mode, btn) {
+  MS_MODE = mode;
+  document.querySelectorAll('#ms_qty_wrap .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('ms_mode_sheet').style.display = mode==='sheet' ? 'block' : 'none';
+  document.getElementById('ms_mode_area').style.display  = mode==='area'  ? 'block' : 'none';
+  if(mode==='area' && MS_AREA_ROWS.length===0) {
+    MS_AREA_ROWS = [{w:0, l:0}];
+    renderAreaRows();
+  }
+  msCalcPrice();
+}
+
+// ---- Area rows ----
+function addAreaRow() {
+  syncAreaFromDOM();
+  MS_AREA_ROWS.push({w:0, l:0});
+  renderAreaRows();
+  msCalcPrice();
+}
+
+function removeAreaRow(idx) {
+  syncAreaFromDOM();
+  if(MS_AREA_ROWS.length<=1) return;
+  MS_AREA_ROWS.splice(idx,1);
+  renderAreaRows();
+  msCalcPrice();
+}
+
+function syncAreaFromDOM() {
+  var rows = document.querySelectorAll('#ms_area_rows .ar-row');
+  rows.forEach(function(row,idx){
+    if(idx>=MS_AREA_ROWS.length) return;
+    var wi = row.querySelector('.ar-w'); var li = row.querySelector('.ar-l');
+    if(wi) MS_AREA_ROWS[idx].w = parseFloat(wi.value)||0;
+    if(li) MS_AREA_ROWS[idx].l = parseFloat(li.value)||0;
+  });
+}
+
+function updateAreaRowSummary(idx) {
+  var row = document.querySelectorAll('#ms_area_rows .ar-row')[idx];
+  if(!row) return;
+  var wi=row.querySelector('.ar-w'), li=row.querySelector('.ar-l');
+  var w=parseFloat(wi?wi.value:0)||0, l=parseFloat(li?li.value:0)||0;
+  MS_AREA_ROWS[idx]={w:w, l:l};
+  var span=row.querySelector('.ar-sum');
+  if(span) span.textContent = (w&&l) ? '= '+(Math.round(w*l*100)/100).toFixed(2)+' ตรม.' : '';
+  msCalcPrice();
+}
+
+function renderAreaRows() {
+  var wrap = document.getElementById('ms_area_rows');
+  if(!wrap) return;
+  wrap.innerHTML = MS_AREA_ROWS.map(function(row,idx){
+    var area = row.w&&row.l ? (Math.round(row.w*row.l*100)/100).toFixed(2)+' ตรม.' : '';
+    return '<div class="ar-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:4px">' +
+      '<span style="font-size:12px;color:var(--text3);min-width:16px;font-weight:600">'+(idx+1)+'.</span>' +
+      '<span style="font-size:13px;color:var(--text2)">กว้าง</span>' +
+      '<input class="ar-w" type="number" value="'+(row.w||'')+'" placeholder="0.00" min="0" step="0.01" style="width:70px" oninput="updateAreaRowSummary('+idx+')">' +
+      '<span style="font-size:13px;color:var(--text2)">ม.</span>' +
+      '<span style="font-size:13px;color:var(--text2)">ยาว</span>' +
+      '<input class="ar-l" type="number" value="'+(row.l||'')+'" placeholder="0.00" min="0" step="0.01" style="width:70px" oninput="updateAreaRowSummary('+idx+')">' +
+      '<span style="font-size:13px;color:var(--text2)">ม.</span>' +
+      '<span class="ar-sum" style="font-size:12px;color:var(--accent2);min-width:64px">'+area+'</span>' +
+      (MS_AREA_ROWS.length>1 ? '<button class="btn btn-danger btn-sm" onclick="removeAreaRow('+idx+')" style="padding:3px 8px">✕</button>' : '') +
+      '</div>';
+  }).join('');
+}
+
+// คำนวณจำนวนเมตรจากพื้นที่
+function calcQtyFromArea() {
+  var lon = LON_DATA.find(function(l){return l.id===PS.lon;});
+  if(!lon) return null;
+  var width = lon.width || 0.76;
+
+  // คำนวณแต่ละ row แยก
+  var rows = MS_AREA_ROWS.filter(function(r){return r.w>0 && r.l>0;});
+  if(!rows.length) return null;
+
+  var totalArea = 0;
+  var rowResults = rows.map(function(r){
+    var area = Math.round(r.w * r.l * 100)/100;
+    totalArea += area;
+
+    // คำนวณจำนวนแผ่นจากความกว้าง
+    var rawSheets = r.w / width;
+    var floorSheets = Math.floor(rawSheets);
+    var frac = Math.round((rawSheets - floorSheets)*100)/100;
+    var sheets = floorSheets;
+    var note = '';
+
+    if(frac===0) {
+      sheets = floorSheets;
+    } else if(frac<=0.10) {
+      sheets = floorSheets;
+      note = 'ขาดไป '+Math.round(frac*width*100)+' ซม.';
+    } else if(frac<=0.20) {
+      sheets = floorSheets+1;
+      note = 'เกินมา '+Math.round((1-frac)*width*100)+' ซม.';
+    } else {
+      sheets = floorSheets+1;
+    }
+
+    // ลอนที่ขายเป็นคู่
+    var pairLons=['300','333','444'];
+    if(pairLons.indexOf(PS.lon)!==-1 && sheets%2!==0) {
+      sheets+=1;
+      note = (note?note+' | ':'')+'ปัดเป็นจำนวนคู่';
+    }
+
+    // Spain 750: ปัดความยาวขึ้น 0.25
+    var len = r.l;
+    if(PS.lon==='750') len = Math.round(Math.ceil(len/0.25)*0.25*100)/100;
+
+    return {w:r.w, l:r.l, realLen:len, sheets:sheets, note:note,
+            totalMeters:Math.round(len*sheets*100)/100};
+  });
+
+  totalArea = Math.round(totalArea*100)/100;
+
+  // totalLen = ผลรวมเมตรของทุก row (sheets × ความยาว)
+  var totalLen = 0;
+  rowResults.forEach(function(r){ totalLen += r.totalMeters; });
+  totalLen = Math.round(totalLen*100)/100;
+
+  // sheetNote รวมจาก row ที่มี note
+  var notes = rowResults.map(function(r){return r.note;}).filter(Boolean);
+
+  return {
+    totalArea:totalArea, totalLen:totalLen, width:width,
+    rowResults:rowResults,
+    sheetNote: notes.join(' | ')
+  };
+}
+
+function addSheetRow() {
+  syncSheetsFromDOM();
+  MS_SHEETS.push({len:'', count:'', note:''});
+  renderSheetRows();
+  msCalcPrice();
+}
+
+function removeSheetRow(idx) {
+  syncSheetsFromDOM();
+  if(MS_SHEETS.length<=1) return;
+  MS_SHEETS.splice(idx,1);
+  renderSheetRows();
+  msCalcPrice();
+}
+
+// อ่านค่าจาก DOM inputs เข้า array (ไม่ re-render)
+function syncSheetsFromDOM() {
+  var rows = document.querySelectorAll('#ms_sheet_rows .ms-row');
+  rows.forEach(function(row, idx) {
+    if(idx >= MS_SHEETS.length) return;
+    var lenInput = row.querySelector('.ms-len');
+    var cntInput = row.querySelector('.ms-cnt');
+    var noteInput = row.querySelector('.ms-note');
+    if(lenInput)  MS_SHEETS[idx].len   = parseFloat(lenInput.value)||0;
+    if(cntInput)  MS_SHEETS[idx].count = parseInt(cntInput.value)||0;
+    if(noteInput) MS_SHEETS[idx].note  = noteInput.value||'';
+  });
+}
+
+// อัพเดท summary span ของ row เดิม โดยไม่ re-render ทั้งหมด
+function updateRowSummary(idx) {
+  var row = document.querySelectorAll('#ms_sheet_rows .ms-row')[idx];
+  if(!row) return;
+  var lenInput = row.querySelector('.ms-len');
+  var cntInput = row.querySelector('.ms-cnt');
+  var noteInput = row.querySelector('.ms-note');
+  var len = parseFloat(lenInput ? lenInput.value : 0)||0;
+  var cnt = parseInt(cntInput ? cntInput.value : 0)||0;
+  var note = noteInput ? noteInput.value : (MS_SHEETS[idx] ? (MS_SHEETS[idx].note||'') : '');
+  // Spain 750: แสดง note ถ้าค่าไม่ตรง 0.25 (snap จะเกิดตอน onblur ผ่าน snapSpainAndUpdate)
+  var snapNote = '';
+  if(PS.lon==='750' && len>0) {
+    var snapped = Math.round(Math.ceil(len/0.25)*0.25*100)/100;
+    if(Math.round(snapped*100) !== Math.round(len*100)) {
+      snapNote = len.toFixed(2)+' → '+snapped.toFixed(2)+' ม.';
+    }
+  }
+  if(idx < MS_SHEETS.length) MS_SHEETS[idx] = {len:len, count:cnt, note:note};
+  var bendExtra = (PS.bendOn && PS.bendExtra) ? PS.bendExtra : 0;
+  var realLen = Math.round((len + bendExtra)*100)/100;
+  var totalM  = Math.round(realLen * cnt * 100)/100;
+  var span = row.querySelector('.ms-row-sum');
+  if(span) {
+    var txt = '';
+    if(snapNote) txt = '📐 '+snapNote+' ';
+    if(bendExtra>0) txt += '→ '+realLen.toFixed(2)+'ม.×'+cnt+' = '+totalM.toFixed(2)+'ม.';
+    else if(MS_SHEETS.length>1 || snapNote) txt += '= '+totalM.toFixed(2)+' ม.';
+    span.textContent = txt;
+    span.style.color = snapNote ? 'var(--yellow)' : 'var(--accent2)';
+  }
+  msCalcPrice();
+}
+
+function renderSheetRows() {
+  var wrap = document.getElementById('ms_sheet_rows');
+  if(!wrap) return;
+  var bendExtra = (PS.bendOn && PS.bendExtra) ? PS.bendExtra : 0;
+  wrap.innerHTML = MS_SHEETS.map(function(row,idx){
+    var realLen = Math.round((row.len + bendExtra)*100)/100;
+    var totalM  = Math.round(realLen * row.count * 100)/100;
+    var sumText = '';
+    if(bendExtra>0) sumText = '→ '+realLen.toFixed(2)+'ม. × '+row.count+' = '+totalM.toFixed(2)+'ม.';
+    else if(MS_SHEETS.length>1) sumText = '= '+totalM.toFixed(2)+' ม.';
+    var hasNote = row.note && row.note.trim();
+    return '<div class="ms-row" style="background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:4px">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+        '<span style="font-size:12px;color:var(--text3);min-width:16px;font-weight:600">'+(idx+1)+'.</span>' +
+        (bendExtra>0 ? '<span style="font-size:12px;color:var(--yellow);white-space:nowrap">ตรง</span>' : '<span style="font-size:13px;color:var(--text2)">ยาว</span>') +
+        (PS.lon==='750'
+          ? '<input class="ms-len no-arrow" type="number" value="'+(row.len!==''&&row.len!==null?(+row.len).toFixed(2):'')+'" min="0.25" step="0.25" style="width:76px" oninput="msCalcPrice()" onblur="snapSpainAndUpdate('+idx+',this)">'
+          : '<input class="ms-len no-arrow" type="number" value="'+(row.len!==''&&row.len!==null?(+row.len).toFixed(2):'')+'" min="0.1" step="0.01" style="width:76px" oninput="updateRowSummary('+idx+')">') +
+        '<span style="font-size:13px;color:var(--text2)">ม.</span>' +
+        '<input class="ms-cnt no-arrow" type="number" value="'+row.count+'" min="1" step="1" style="width:56px" oninput="updateRowSummary('+idx+')">' +
+        '<span style="font-size:13px;color:var(--text2)">แผ่น</span>' +
+        '<span class="ms-row-sum" style="font-size:12px;color:var(--accent2);flex:1">'+sumText+'</span>' +
+        '<button onclick="toggleRowNote('+idx+')" id="note_btn_'+idx+'" style="background:none;border:1px solid '+(hasNote?'var(--yellow)':'var(--border)')+';border-radius:6px;cursor:pointer;font-size:11px;padding:2px 8px;color:'+(hasNote?'var(--yellow)':'var(--text3)')+'">📝</button>' +
+        (MS_SHEETS.length>1 ? '<button class="btn btn-danger btn-sm" onclick="removeSheetRow('+idx+')" style="padding:3px 8px">✕</button>' : '') +
+      '</div>' +
+      '<div id="note_wrap_'+idx+'" style="display:'+(hasNote?'block':'none')+';margin-top:5px">' +
+        '<input class="ms-note" type="text" value="'+(row.note||'')+'" placeholder="เช่น ช่องแอร์, สันหลังคา" style="font-size:12px;width:100%;padding:4px 8px;color:var(--text3)" oninput="updateRowSummary('+idx+')">' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+var LON_DATA = [
+  {id:'760', label:'ลอนหลังคา 760', extra:0, formula:'none', screw:true,  width:0.76},
+  {id:'300', label:'ลอนสเนปล็อค 300', extra:0, formula:'half20', screw:true,  width:0.30},
+  {id:'750', label:'ลอนสเปน 750', extra:30, formula:'add', screw:true,  width:0.75},
+  {id:'860', label:'ลอนพาเนล 860', extra:10, formula:'add', screw:false, width:0.86},
+  {id:'914', label:'แผ่นเรียบ 914', extra:0, formula:'none', screw:false, width:0.914},
+  {id:'333', label:'ลอนผนัง 333', extra:0, formula:'half20', screw:false, width:0.30},
+  {id:'444', label:'ลอนผนัง 444', extra:0, formula:'half20', screw:false, width:0.26},
+];
+
+var MS_MODE = 'sheet'; // 'sheet' | 'area'
+var MS_AREA_ROWS = []; // [{w, l, label}]
+
+var CROP_STYLES = {
+  'ครอบจั่ว':   [{no:1,size:304},{no:2,size:304},{no:3,size:304},{no:4,size:457},{no:5,size:457},{no:6,size:457}],
+  'ครอบข้าง':   [{no:7,size:304},{no:8,size:457},{no:9,size:304},{no:10,size:457}],
+  'ครอบชนผนัง': [{no:11,size:304},{no:12,size:304},{no:13,size:457},{no:14,size:457}],
+  'ครอบบานเกร็ด':[{no:15,size:304},{no:16,size:457}],
+  'ครอบพับตามแบบ':[],
+};
+
+var NK_COLORS = ['สีดำด้าน','สีขาว','สีแดงอิฐ','สีแดงสด','สีส้ม','สีเขียวสด','สีเขียวใบตอง','สีฟ้า','สีเหลือง','สีเทา','สีดำแวว','สีลายไม้เข้ม','สีครีม','สีม่วง','สีเขียวบางจาก','สีน้ำเงิน','สีน้ำตาล','สีลายไม้อ่อน'];
+var BS_COLORS = [
+  'สีขาว Asian White','สีส้ม Citrus Orange','สีแดงอิฐ Castle Red',
+  'สีน้ำตาล Natural Brown','สีครีม Peanut Butter','สีแดง HG Tiger Red',
+  'สีเหลือง MG Yellow','สีฟ้า Shampoo Blue','สีน้ำเงิน Nuvo Blue',
+  'สีเขียวสด Bright Green','สีเขียว Bangchak Green','สีบานาน่าลีฟ Banana Leaf',
+  'สีเทาอ่อน Shutter Grey','สีเทาเข้ม Leader Grey',
+  'สีดำแวว Spider Black','สีดำด้าน Natural Spider Black'
+];
+
+var CB_COLORS = ['Thredbo White','Aiyara White','Off White','In Light Grey','Burnt Almond','Desert Wind','Jade Green','Alloy Grey','Custard Orange','International Brown','Skytone Blue','Bangkok Red','Tobac Brown','Army Green','Ocean Blue','Posh Grey','Carbonic Grey','Forest Green'];
+
+// ============================================================
+// PRODUCT SELECTOR — init
+// ============================================================
+function loadProducts() {
+  api('getProducts', {}, function(r) {
+    S.products = r.products;
+    initProductSelector();
+    buildOtherProducts();
+  });
+}
+
+function initProductSelector() {
+  // Grade buttons
+  var grades = ['เหล็กนอก','บลูสโคป','BSI'];
+  setBtns('ms_grade', grades, function(v,btn){ selectMSGrade(v,btn); });
+  // Crop grade
+  setBtns('crop_grade', grades, function(v,btn){ selectCropGrade(v,btn); });
+  // Other products
+  renderOtherProducts();
+}
+
+function setBtns(containerId, labels, onClick) {
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = labels.map(function(l,i){
+    return '<button class="btn ps-btn" onclick="('+onClick.toString()+')(\''+l+'\',this)">'+l+'</button>';
+  }).join('');
+}
+
+function onBtn(containerId) {
+  document.querySelectorAll('#'+containerId+' .ps-btn').forEach(function(b){ b.classList.remove('on'); });
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchPTab(n) {
+  [1,2,3].forEach(function(i){
+    document.getElementById('pTab'+i).classList.toggle('active', i===n);
+    document.getElementById('pPanel'+i).classList.toggle('hidden', i!==n);
+  });
+}
+
+// ============================================================
+// METALSHEET SELECTOR
+// ============================================================
+function selectMSGrade(grade, btn) {
+  var pw=document.getElementById('pair_warn'); if(pw) pw.style.display='none';
+  PS.grade=grade; PS.steelType=null; PS.color=null; PS.thick=null; PS.lon=null;
+  onBtn('ms_grade'); btn.classList.add('on');
+  resetMSFrom('type');
+
+  // type buttons
+  var wrap = document.getElementById('ms_type_wrap');
+  var c = document.getElementById('ms_type');
+  wrap.classList.remove('hidden');
+
+  if(grade==='เหล็กนอก') {
+    c.innerHTML='<button class="btn ps-btn" onclick="selectMSType(\'อลูซิงค์\',this)">อลูซิงค์ (ไม่มีสี)</button>'+
+                '<button class="btn ps-btn" onclick="selectMSType(\'สี\',this)">สี</button>';
+  } else if(grade==='บลูสโคป') {
+    c.innerHTML='<button class="btn ps-btn" onclick="selectMSType(\'อลูซิงค์\',this)">อลูซิงค์</button>'+
+                '<button class="btn ps-btn" onclick="selectMSType(\'สี\',this)">สี</button>'+
+                '<button class="btn ps-btn" onclick="selectMSType(\'Zincalume\',this)">Zincalume AZ150</button>'+
+                '<button class="btn ps-btn" onclick="selectMSType(\'Colorbond\',this)">Colorbond</button>';
+  } else { // BSI
+    c.innerHTML='<button class="btn ps-btn" onclick="selectMSType(\'อลูซิงค์\',this)">AZ150 อลูซิงค์</button>';
+  }
+}
+
+function selectMSType(type, btn) {
+  PS.steelType=type; PS.color=null; PS.thick=null; PS.lon=null;
+  onBtn('ms_type'); btn.classList.add('on');
+  var pw=document.getElementById('pair_warn'); if(pw) pw.style.display='none';
+
+  if(type==='สี' && PS.grade==='บลูสโคป') {
+    // ซ่อนทุกอย่างหลัง type ก่อน
+    ['ms_color_wrap','ms_lon_wrap','ms_snap_wrap','ms_extras_wrap','ms_qty_wrap'].forEach(function(id){
+      document.getElementById(id).classList.add('hidden');
+    });
+    resetExtras();
+    // แสดงความหนาก่อน
+    var bsThicks = ['0.35','0.40','0.47'];
+    var c = document.getElementById('ms_thick');
+    c.innerHTML = bsThicks.map(function(t){
+      return '<button class="btn ps-btn" onclick="selectMSThickForColor(\''+t+'\',this)">'+t+' มม.</button>';
+    }).join('');
+    document.getElementById('ms_thick_wrap').classList.remove('hidden');
+  } else if(type==='สี' && PS.grade==='เหล็กนอก') {
+    ['ms_color_wrap','ms_lon_wrap','ms_snap_wrap','ms_extras_wrap','ms_qty_wrap'].forEach(function(id){
+      document.getElementById(id).classList.add('hidden');
+    });
+    resetExtras();
+    var nkThicks = ['0.30','0.35','0.40'];
+    var c = document.getElementById('ms_thick');
+    c.innerHTML = nkThicks.map(function(t){
+      return '<button class="btn ps-btn" onclick="selectMSThickForColor(\''+t+'\',this)">'+t+' มม.</button>';
+    }).join('');
+    document.getElementById('ms_thick_wrap').classList.remove('hidden');
+  } else if(type==='Colorbond') {
+    ['ms_color_wrap','ms_lon_wrap','ms_snap_wrap','ms_extras_wrap','ms_qty_wrap'].forEach(function(id){
+      document.getElementById(id).classList.add('hidden');
+    });
+    resetExtras();
+    var cbThicks = ['0.39','0.51'];
+    var c = document.getElementById('ms_thick');
+    c.innerHTML = cbThicks.map(function(t){
+      return '<button class="btn ps-btn" onclick="selectMSThickForColor(\''+t+'\',this)">'+t+' มม.</button>';
+    }).join('');
+    document.getElementById('ms_thick_wrap').classList.remove('hidden');
+  } else {
+    resetMSFrom('color');
+    buildMSThick();
+  }
+}
+
+function selectMSThickForColor(thick, btn) {
+  var pw=document.getElementById('pair_warn'); if(pw) pw.style.display='none';
+  PS.thick = thick; PS.color = null; PS.lon = null;
+  // highlight ปุ่ม thick ที่เลือก
+  document.querySelectorAll('#ms_thick .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  // ซ่อน lon/extras/qty
+  ['ms_lon_wrap','ms_snap_wrap','ms_extras_wrap','ms_qty_wrap'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  resetExtras();
+
+  // แสดงสี
+  var colors = [];
+  if(PS.grade==='เหล็กนอก') colors = NK_COLORS;
+  else if(PS.steelType==='Colorbond') colors = CB_COLORS;
+  else colors = BS_COLORS;
+
+  var c = document.getElementById('ms_color');
+  c.innerHTML = colors.map(function(col){
+    return '<button class="btn ps-btn" onclick="selectMSColor(\''+col+'\',this)">'+col+'</button>';
+  }).join('');
+  // ล้าง selection สีเก่า
+  document.querySelectorAll('#ms_color .ps-btn').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('ms_color_wrap').classList.remove('hidden');
+
+  // หา base price เบื้องต้น
+  var grpName = PS.grade==='เหล็กนอก' ? 'เหล็กนอก สี' : (PS.steelType==='Colorbond' ? 'Colorbond' : 'บลูสโคป สี');
+  var p = S.products.find(function(x){ return x['ประเภทเหล็ก']===grpName && x['ความหนา']===thick; });
+  PS.basePrice = p ? (parseFloat(p['ราคา/หน่วย'])||0) : 0;
+  PS._warranty = p ? (p['หมายเหตุ/รับประกัน']||'') : '';
+  PS._unit = p ? (p['หน่วย']||'เมตร') : 'เมตร';
+}
+
+function selectMSColor(color, btn) {
+  var pw=document.getElementById('pair_warn'); if(pw) pw.style.display='none';
+  PS.color=color; PS.lon=null;
+  onBtn('ms_color'); btn.classList.add('on');
+
+
+
+  // หาราคาที่ตรงกับ thick+color
+  var grpName = PS.grade==='เหล็กนอก' ? 'เหล็กนอก สี' : (PS.steelType==='Colorbond' ? 'Colorbond' : 'บลูสโคป สี');
+  var p = S.products.find(function(x){
+    return x['ประเภทเหล็ก']===grpName && x['ความหนา']===PS.thick && x['สี']===color;
+  });
+  if(p) { PS.basePrice=parseFloat(p['ราคา/หน่วย'])||PS.basePrice; PS._warranty=p['หมายเหตุ/รับประกัน']||PS._warranty; }
+
+  // แสดง lon
+  var lonEl = document.getElementById('ms_lon');
+  lonEl.innerHTML = LON_DATA.map(function(l){
+    return '<button class="btn ps-btn" onclick="selectMSLon(\''+l.id+'\',this)">'+l.label+'</button>';
+  }).join('');
+  document.getElementById('ms_lon_wrap').classList.remove('hidden');
+}
+
+function buildMSThick() {
+  // find matching products
+  var matches = S.products.filter(function(p){
+    var g = p['ประเภทเหล็ก']||'';
+    if(PS.grade==='เหล็กนอก') {
+      if(PS.steelType==='อลูซิงค์') return g==='เหล็กนอก' && p['สี']==='ไม่มีสี';
+      if(PS.steelType==='สี') return g==='เหล็กนอก สี' && p['สี']===PS.color;
+    }
+    if(PS.grade==='บลูสโคป') {
+      if(PS.steelType==='อลูซิงค์') return g==='บลูสโคป' && p['สี']==='ไม่มีสี';
+      if(PS.steelType==='Zincalume') return g==='บลูสโคป' && (p['ชื่อสินค้า']||'').includes('Zincalume');
+      if(PS.steelType==='สี') return g==='บลูสโคป สี' && p['สี']===PS.color;
+    }
+    if(PS.grade==='BSI') return g==='BSI';
+    return false;
+  });
+  var thicks = [];
+  matches.forEach(function(p){ if(thicks.indexOf(p['ความหนา'])===-1) thicks.push(p['ความหนา']); });
+  thicks.sort();
+  var c = document.getElementById('ms_thick');
+  c.innerHTML = thicks.map(function(t){
+    return '<button class="btn ps-btn" onclick="selectMSThick(\''+t+'\',this)">'+t+' มม.</button>';
+  }).join('');
+  document.getElementById('ms_thick_wrap').classList.remove('hidden');
+}
+
+function selectMSThick(thick, btn) {
+  var pw=document.getElementById('pair_warn'); if(pw) pw.style.display='none';
+  PS.thick=thick; PS.lon=null;
+  onBtn('ms_thick'); btn.classList.add('on');
+  resetMSFrom('lon');
+
+  // find base price
+  var p = S.products.find(function(x){
+    var g=x['ประเภทเหล็ก']||'';
+    if(PS.grade==='เหล็กนอก'){
+      if(PS.steelType==='อลูซิงค์') return g==='เหล็กนอก' && x['สี']==='ไม่มีสี' && x['ความหนา']===thick;
+      if(PS.steelType==='สี') return g==='เหล็กนอก สี' && x['สี']===PS.color && x['ความหนา']===thick;
+    }
+    if(PS.grade==='บลูสโคป'){
+      if(PS.steelType==='Zincalume') return g==='บลูสโคป' && (x['ชื่อสินค้า']||'').includes('Zincalume') && x['ความหนา']===thick;
+      if(PS.steelType==='อลูซิงค์') return g==='บลูสโคป' && x['สี']==='ไม่มีสี' && x['ความหนา']===thick;
+      if(PS.steelType==='สี') return g==='บลูสโคป สี' && x['สี']===PS.color && x['ความหนา']===thick;
+    }
+    if(PS.grade==='BSI') return g==='BSI' && x['ความหนา']===thick;
+    return false;
+  });
+  PS.basePrice = p ? (parseFloat(p['ราคา/หน่วย'])||0) : 0;
+  PS._warranty = p ? (p['หมายเหตุ/รับประกัน']||'') : '';
+  PS._unit = p ? (p['หน่วย']||'เมตร') : 'เมตร';
+
+  // lon buttons
+  var c = document.getElementById('ms_lon');
+  c.innerHTML = LON_DATA.map(function(l){
+    return '<button class="btn ps-btn" onclick="selectMSLon(\''+l.id+'\',this)">'+l.label+'</button>';
+  }).join('');
+  document.getElementById('ms_lon_wrap').classList.remove('hidden');
+}
+
+function selectMSLon(lonId, btn) {
+  PS.lon=lonId; PS.snapType=null;
+  onBtn('ms_lon'); btn.classList.add('on');
+  var lon = LON_DATA.find(function(l){return l.id===lonId;});
+  PS.lonPrice = calcLonPrice(PS.basePrice, lon);
+
+  // แสดง hint สูตรราคา
+  var base = PS.basePrice;
+  var formulaMap = {
+    '760': 'ราคาปกติ',
+    '914': 'ราคาปกติ',
+    '300': '⌈'+base+'÷2 + 20⌉ = '+Math.ceil(base/2+20)+' บาท/ม.',
+    '333': '⌈'+base+'÷2 + 20⌉ = '+Math.ceil(base/2+20)+' บาท/ม.',
+    '444': '⌈'+base+'÷2 + 20⌉ = '+Math.ceil(base/2+20)+' บาท/ม.',
+    '750': base+' + 30 = '+(base+30)+' บาท/ม.',
+    '860': base+' + 10 = '+(base+10)+' บาท/ม.',
+  };
+  var lonHint = document.getElementById('lon_price_hint');
+  if(!lonHint) {
+    lonHint = document.createElement('div');
+    lonHint.id = 'lon_price_hint';
+    lonHint.style.cssText = 'font-size:11px;color:var(--yellow);margin:4px 0 0';
+    var lonWrap = document.getElementById('ms_lon_wrap');
+    if(lonWrap) lonWrap.appendChild(lonHint);
+  }
+  if(base>0 && formulaMap[lonId] && lonId!=='760' && lonId!=='914') {
+    lonHint.textContent = '💡 ' + formulaMap[lonId];
+  } else {
+    lonHint.textContent = '';
+  }
+
+  // เตือนขายเป็นคู่
+  var pairLons = ['300','333','444'];
+  var pw = document.getElementById('pair_warn');
+  if(pw) pw.style.display = pairLons.indexOf(lonId)!==-1 ? 'block' : 'none';
+
+  // บริการเสริม สำหรับ 760 / 750 / 300
+  var extWrap = document.getElementById('ms_extras_wrap');
+  var showExtras = (lonId==='760' || lonId==='750' || lonId==='300');
+  extWrap.classList.toggle('hidden', !showExtras);
+  if(!showExtras) { resetExtras(); }
+
+  // ย้ำโค้ง: ได้เฉพาะลอนหลังคา 760 เท่านั้น (300, 750 ย้ำโค้งไม่ได้)
+  var bendRow = document.getElementById('ex_bend_row');
+  if(bendRow) {
+    if(lonId==='760') {
+      bendRow.style.display = '';
+    } else {
+      bendRow.style.display = 'none';
+      var bendChk = document.getElementById('ex_bend');
+      if(bendChk && bendChk.checked) { bendChk.checked = false; toggleExtra('bend'); }
+    }
+  }
+
+  // sub-type สำหรับสเนปล็อค 300
+  var snapWrap = document.getElementById('ms_snap_wrap');
+  // sub-type สำหรับแผ่นเรียบ 914
+  var s914Wrap = document.getElementById('ms_914_wrap');
+
+  if(lonId==='300') {
+    snapWrap.classList.remove('hidden');
+    s914Wrap.classList.add('hidden');
+    document.querySelectorAll('#ms_snap_wrap .ps-btn').forEach(function(b){b.classList.remove('on');});
+    document.getElementById('ms_qty_wrap').classList.add('hidden');
+  } else if(lonId==='914') {
+    snapWrap.classList.add('hidden');
+    s914Wrap.classList.remove('hidden');
+    document.querySelectorAll('#ms_914_btns .ps-btn').forEach(function(b){b.classList.remove('on');});
+    PS.type914 = null;
+    document.getElementById('ms_914_custom').style.display='none';
+    document.getElementById('ms_914_price_hint').style.display='none';
+    document.getElementById('ms_qty_wrap').classList.add('hidden');
+  } else {
+    snapWrap.classList.add('hidden');
+    s914Wrap.classList.add('hidden');
+    document.getElementById('ms_qty_wrap').classList.remove('hidden');
+    document.getElementById('ms_price_input').value = PS.lonPrice;
+    initSheetRows();
+    msCalcPrice();
+  }
+}
+
+function set914Type(btn, type) {
+  PS.type914 = type;
+  document.querySelectorAll('#ms_914_btns .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+
+  var customDiv  = document.getElementById('ms_914_custom');
+  var priceHint  = document.getElementById('ms_914_price_hint');
+  var stockHint  = document.getElementById('ms_914_stock_hint');
+  var base = PS.basePrice||0;
+
+  // คำนวณราคา
+  var price = base;
+  var formula = '';
+  if(type==='914')    { price=base;                        formula='ราคาเต็มแผ่น'; }
+  else if(type==='457') { price=Math.ceil(base/2+20);       formula='⌈'+base+'÷2 + 20⌉ = '+price+' บาท/ม.'; }
+  else if(type==='304') { price=Math.ceil(base/3+30);       formula='⌈'+base+'÷3 + 30⌉ = '+price+' บาท/ม.'; }
+  else if(type==='608') { price=Math.ceil(base/3*2+20);     formula='⌈'+base+'÷3×2 + 20⌉ = '+price+' บาท/ม.'; }
+
+  if(type!=='custom') {
+    customDiv.style.display='none';
+    stockHint.style.display='none';
+    priceHint.style.display='block';
+    priceHint.textContent='💡 '+formula;
+    document.getElementById('ms_qty_wrap').classList.remove('hidden');
+    document.getElementById('ms_price_input').value = price;
+    PS.lonPrice = price;
+    initSheetRows();
+    msCalcPrice();
+  } else {
+    customDiv.style.display='block';
+    priceHint.style.display='none';
+    document.getElementById('ms_qty_wrap').classList.add('hidden');
+    render914CustomRows();
+  }
+}
+
+var MS_914_WIDTHS = [{w:0},{w:0},{w:0},{w:0}]; // 4 ช่อง
+
+function render914CustomRows() {
+  var wrap = document.getElementById('ms_914_custom_rows');
+  if(!wrap) return;
+  wrap.innerHTML = MS_914_WIDTHS.map(function(r,idx){
+    return '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span style="font-size:12px;color:var(--text3);min-width:16px">'+(idx+1)+'.</span>' +
+      '<input type="number" value="'+(r.w||'')+'" placeholder="ซม." min="0" max="91.4" step="0.1" style="width:80px" oninput="update914Width('+idx+',this.value)">' +
+      '<span style="font-size:12px;color:var(--text3)">ซม.</span>' +
+    '</div>';
+  }).join('');
+  calc914Custom();
+}
+
+function update914Width(idx, val) {
+  MS_914_WIDTHS[idx].w = parseFloat(val)||0;
+  calc914Custom();
+}
+
+function calc914Custom() {
+  var base = PS.basePrice||0;
+  var totalW = 914; // มม. → ซม.
+  var SHEET_W = 91.4;
+  var activeWidths = MS_914_WIDTHS.map(function(r){return r.w;}).filter(function(w){return w>0;});
+  var usedW = activeWidths.reduce(function(s,w){return s+w;},0);
+  var leftW = Math.round((SHEET_W-usedW)*10)/10;
+
+  var hint = document.getElementById('ms_914_stock_hint');
+  var priceHint = document.getElementById('ms_914_price_hint');
+
+  if(activeWidths.length===0) {
+    hint.style.display='none';
+    priceHint.style.display='none';
+    document.getElementById('ms_qty_wrap').classList.add('hidden');
+    return;
+  }
+
+  // เศษที่เหลือ → เก็บสต๊อคได้ไหม
+  var stockMsg = '';
+  if(leftW>=60.8) stockMsg='เหลือ '+leftW.toFixed(1)+' ซม. → เก็บเป็น <b>608 (60.8 ซม.)</b> + เศษ '+(Math.round((leftW-60.8)*10)/10).toFixed(1)+' ซม.';
+  else if(leftW>=45.7) stockMsg='เหลือ '+leftW.toFixed(1)+' ซม. → เก็บเป็น <b>457 (45.7 ซม.)</b> + เศษ '+(Math.round((leftW-45.7)*10)/10).toFixed(1)+' ซม.';
+  else if(leftW>=30.4) stockMsg='เหลือ '+leftW.toFixed(1)+' ซม. → เก็บเป็น <b>304 (30.4 ซม.)</b> + เศษ '+(Math.round((leftW-30.4)*10)/10).toFixed(1)+' ซม.';
+  else if(leftW>0) stockMsg='เหลือ '+leftW.toFixed(1)+' ซม. (เศษเล็กน้อย)';
+  else if(leftW<0) stockMsg='⚠️ กว้างเกิน 91.4 ซม.! ลดขนาดลง';
+
+  if(stockMsg) { hint.style.display='block'; hint.innerHTML='📦 '+stockMsg; }
+  else hint.style.display='none';
+
+  // คิดราคาแต่ละช่อง: (w/91.4 × base) + 10 ต่อชิ้น
+  var pieces = activeWidths.length;
+  var totalCutCost = pieces * 10;
+  var priceLines = activeWidths.map(function(w,i){
+    var p = Math.ceil(w/SHEET_W*base + 10);
+    return '  ช่อง '+(i+1)+': '+w+'ซม. = ⌈'+w+'/91.4×'+base+' + 10⌉ = '+p+' บาท/ม.';
+  });
+  priceHint.style.display='block';
+  priceHint.innerHTML='💡 ราคาแต่ละช่อง:<br>'+priceLines.join('<br>');
+
+  // ราคาเฉลี่ย (สำหรับใส่ใน price input — ใช้ราคาช่องแรกหรือเฉลี่ย)
+  var avgPrice = Math.ceil(activeWidths.reduce(function(s,w){return s+w/SHEET_W*base+10;},0)/pieces);
+  document.getElementById('ms_qty_wrap').classList.remove('hidden');
+  document.getElementById('ms_price_input').value = avgPrice;
+  PS.lonPrice = avgPrice;
+  PS._914widths = activeWidths;
+  initSheetRows();
+  msCalcPrice();
+}
+
+function setSnapType(btn, type) {
+  PS.snapType = type;
+  document.querySelectorAll('#ms_snap_wrap .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('ms_qty_wrap').classList.remove('hidden');
+  document.getElementById('ms_price_input').value = PS.lonPrice;
+  initSheetRows();
+  // Spain 750: แจ้งเตือนว่าความยาวต้องเป็น 0.25
+  var spainNote = document.getElementById('spain_note');
+  if(PS.lon==='750') {
+    if(!spainNote) {
+      var n = document.createElement('div');
+      n.id='spain_note';
+      n.style.cssText='font-size:12px;color:var(--yellow);margin-top:4px;padding:6px 8px;background:rgba(245,158,11,.1);border-radius:6px;';
+      n.textContent='⚠️ ลอนสเปน 750 ความยาวแผ่นต้องเป็นทวีคูณของ 0.25 ม. (เช่น 2.50, 2.75, 3.00 ม.) ระบบจะปัดขึ้นอัตโนมัติ';
+      document.getElementById('ms_sheet_rows').parentNode.insertBefore(n, document.getElementById('ms_sheet_rows').nextSibling);
+    }
+  } else {
+    if(spainNote) spainNote.remove();
+  }
+  msCalcPrice();
+}
+
+function calcLonPrice(base, lon) {
+  if(!lon || !base) return base||0;
+  var id = lon.id || '';
+  // 760 / 914: ไม่คิดค่าบริการ
+  if(id==='760' || id==='914') return base;
+  // 300 / 333 / 444: ÷2 + 20 บาท (ค่าผ่า 10 + ค่ารีด 10)
+  if(id==='300' || id==='333' || id==='444') return Math.ceil(base/2 + 20);
+  // 750: บวก 30 บาท/เมตร
+  if(id==='750') return base + 30;
+  // 860: บวก 10 บาท/เมตร
+  if(id==='860') return base + 10;
+  return base;
+}
+
+function msCalcPrice() {
+  var price = parseFloat(document.getElementById('ms_price_input').value)||0;
+  var bendExtra = (PS.bendOn && PS.bendExtra) ? PS.bendExtra : 0;
+  var totalQty = 0;
+
+  if(MS_MODE==='sheet') {
+    syncSheetsFromDOM();
+    MS_SHEETS.forEach(function(r){
+      var realLen = Math.round((r.len + bendExtra)*100)/100;
+      totalQty += Math.round(realLen * r.count * 100)/100;
+    });
+    totalQty = Math.round(totalQty*100)/100;
+  } else {
+    syncAreaFromDOM();
+    var res = calcQtyFromArea();
+    totalQty = res ? res.totalLen : 0;
+    var preview = document.getElementById('ms_area_sheet_preview');
+    var rowsEl  = document.getElementById('ms_area_sheet_rows');
+    var noteEl  = document.getElementById('ms_area_sheet_note');
+    if(res && res.rowResults && res.rowResults.length>0) {
+      preview.style.display='block';
+      rowsEl.innerHTML = res.rowResults.map(function(r){
+        return '- แผ่นยาว '+r.realLen.toFixed(2)+' เมตร '+r.sheets+' แผ่น = '+r.totalMeters.toFixed(2)+' ม.';
+      }).join('<br>');
+      var totalLine = res.rowResults.length>1
+        ? '<br><b>รวม '+totalQty+' เมตร</b>'
+        : '';
+      rowsEl.innerHTML += totalLine;
+      noteEl.textContent = res.sheetNote ? '⚠️ '+res.sheetNote : '';
+    } else {
+      preview.style.display='none';
+    }
+  }
+
+  var total = Math.round(totalQty * price);
+  document.getElementById('ms_total_preview').textContent = '฿'+total.toLocaleString();
+}
+
+function addMSItem() {
+  var price = parseFloat(document.getElementById('ms_price_input').value)||0;
+  if(!PS.lon) { showToast('กรุณาเลือกสินค้าก่อน','error'); return; }
+
+  var totalQty = 0;
+  var noteLines = [];
+  var bendExtra = (PS.bendOn && PS.bendExtra) ? PS.bendExtra : 0;
+
+  if(MS_MODE==='sheet') {
+    syncSheetsFromDOM(); // sync ก่อนเสมอ รวมถึง note
+    if(!MS_SHEETS.length||!MS_SHEETS[0].len||!MS_SHEETS[0].count){showToast('กรุณาใส่จำนวนแผ่น','error');return;}
+    MS_SHEETS.forEach(function(r){
+      var realLen = Math.round((r.len + bendExtra)*100)/100;
+      totalQty += Math.round(realLen * r.count * 100)/100;
+    });
+    totalQty = Math.round(totalQty*100)/100;
+    noteLines = MS_SHEETS.map(function(r){
+      var realLen = Math.round((r.len + bendExtra)*100)/100;
+      var line = '';
+      if(bendExtra>0) {
+        line = '- ตรง '+r.len.toFixed(2)+' ม. + ย้ำ '+bendExtra.toFixed(2)+' ม. = '+realLen.toFixed(2)+' ม. × '+r.count+' แผ่น';
+      } else {
+        line = '- แผ่นยาว '+r.len.toFixed(2)+' เมตร '+r.count+' แผ่น';
+      }
+      if(r.note && r.note.trim()) line += ' ('+r.note.trim()+')';
+      return line;
+    });
+  } else {
+    syncAreaFromDOM();
+    var res = calcQtyFromArea();
+    if(!res||!res.rowResults||res.rowResults.length===0){showToast('กรุณาใส่ข้อมูลพื้นที่','error');return;}
+    totalQty = res.totalLen;
+    noteLines = res.rowResults.map(function(r){
+      return '- แผ่นยาว '+r.realLen.toFixed(2)+' เมตร '+r.sheets+' แผ่น';
+    });
+    if(res.sheetNote) noteLines.push('('+res.sheetNote+')');
+  }
+
+  var lon = LON_DATA.find(function(l){return l.id===PS.lon;});
+  var gradeName = PS.grade||'';
+  var typeName = PS.steelType==='สี' ? 'สี '+PS.color : (PS.steelType||'');
+  if(PS.grade==='บลูสโคป' && PS.steelType==='Zincalume') typeName='Zincalume AZ150';
+
+  // ชื่อสินค้า — ไม่มี /
+  var nameParts = ['เมทัลชีท', lon?lon.label:'', gradeName, typeName, PS.thick||''];
+  if(PS.lon==='300' && PS.snapType) nameParts.push(PS.snapType);
+  if(PS.lon==='914' && PS.type914 && PS.type914!=='914') {
+    var t914label;
+    if(PS.type914==='custom' && PS._914widths && PS._914widths.length) {
+      t914label = 'ระบุกว้าง '+PS._914widths.join('+')+' ซม.';
+    } else {
+      t914label = {457:'457 ผ่า2',304:'304 ผ่า3',608:'608 ผ่า3×2'}[PS.type914]||PS.type914;
+    }
+    nameParts.push(t914label);
+  }
+  var name = nameParts.filter(Boolean).join(' ');
+
+  // extras → ต่อท้ายชื่อด้วย space
+  var extras = [];
+  var puPriceAdd = 0;
+  if(PS.puOn && PS.puSize) {
+    var puLabel = PS.puSize==='25'?'พียูโฟม 25 มม.':(PS.puSize==='50'?'พียูโฟม 50 มม.':'พียูโฟม 50 มม. พรีเมียม');
+    // สีท้องลอน
+    if(PS.puColorNone) {
+      puLabel += ' ท้องลอน (ยังไม่ระบุสี)';
+    } else if(PS.puColor) {
+      puLabel += ' ท้องลอน'+PS.puColor.replace(' +5','');
+    }
+    // เว้นชาย/หัว
+    if(PS.puEaveMode==='full') {
+      puLabel += ' โฟมเต็มแผ่น';
+    } else if(PS.puEaveMode==='none') {
+      puLabel += ' ยังไม่ระบุการเว้นชาย';
+    } else if(PS.puEaveMode==='eave') {
+      var eaveVal = document.getElementById('ex_pu_eave').value;
+      puLabel += eaveVal ? ' เว้นชาย '+eaveVal+' ซม.' : ' เว้นชาย';
+    } else if(PS.puEaveMode==='head') {
+      var headVal = document.getElementById('ex_pu_eave').value;
+      puLabel += headVal ? ' เว้นหัว '+headVal+' ซม.' : ' เว้นหัว';
+    }
+    extras.push(puLabel);  // ขึ้นต้นด้วย - เพื่อแสดงเป็นบรรทัดใหม่ในบิล
+    // รวมราคา PU เข้าราคาเมทัลชีท
+    var puPrices={'25':150,'50':270,'50p':365};
+    puPriceAdd = (puPrices[PS.puSize]||0) + (PS.puColorExtra||0);
+    price = price + puPriceAdd;
+  }
+  if(PS.peOn) {
+    var peLabel = 'ฉนวน PE 5มม.';
+    if(PS.peEaveMode==='full') {
+      peLabel += ' โฟมเต็มแผ่น';
+    } else if(PS.peEaveMode==='none') {
+      peLabel += ' เว้นชาย (ยังไม่ระบุ)';
+    } else {
+      var peEaveVal = document.getElementById('ex_pe_eave').value;
+      if(peEaveVal) peLabel += ' เว้นชาย '+peEaveVal+' ซม.';
+    }
+    extras.push(peLabel);
+  }
+  if(PS.bendOn && PS.bendType) {
+    var bendLabel = 'ย้ำโค้ง'+PS.bendType;
+    var bc=document.getElementById('ex_bend_count').value;
+    var bg=document.getElementById('ex_bend_gap').value;
+    var be=document.getElementById('ex_bend_eave').value;
+    if(bc) bendLabel += ' '+bc+' ย้ำ';
+    if(bg) bendLabel += ' ระยะ '+bg+' ซม.';
+    if(be) bendLabel += ' เว้นชาย '+be+' ซม.';
+    extras.push(bendLabel);
+  }
+  name = name.trim();
+  noteLines = extras.concat(noteLines);
+
+  if(PS._warranty) {
+    PS._warranty.split('\n').forEach(function(w){ if(w.trim()) noteLines.push(w.trim()); });
+  }
+  // 914 custom: เพิ่ม note แสดงราคาแต่ละช่อง
+  if(PS.lon==='914' && PS.type914==='custom' && PS._914widths && PS._914widths.length) {
+    var base914 = PS.basePrice||0;
+    PS._914widths.forEach(function(w,i){
+      var p = Math.ceil(w/91.4*base914 + 10);
+      noteLines.push('- ช่อง '+(i+1)+': กว้าง '+w+' ซม. = '+p+' บาท/ม.');
+    });
+    var hint = document.getElementById('ms_914_stock_hint');
+    if(hint && hint.innerHTML) noteLines.push(hint.textContent.replace('📦 ',''));
+  }
+
+  S.items.push({
+    id:'MS', name:name, qty:totalQty, unit:(PS._unit||'เมตร'),
+    pricePerUnit:price, total:Math.round(totalQty*price),
+    note: noteLines.join('\n'),
+  });
+
+  // PU รวมราคาเข้าเมทัลชีท (แสดงใน note แล้ว)
+  // PE รวมราคาเข้าเมทัลชีทเช่นกัน
+
+  renderOrder();
+  showToast('เพิ่ม '+name.substring(0,30),'success');
+
+  // เก็บ context สำหรับ suggest
+  var snapLon = PS.lon;
+  var snapIsColor = PS.steelType==='สี';
+  var snapPU = PS.puOn ? PS.puSize : null;
+  var snapQty = totalQty;
+  var snapLonLabel = lon ? lon.label : '';
+
+  resetMSAll();
+
+  // แสดง suggest สกรู
+  showScrewSuggest(snapLon, snapIsColor, snapPU, snapQty, snapLonLabel);
+}
+
+function resetMSAll() {
+  PS.grade=null;PS.steelType=null;PS.color=null;PS.thick=null;PS.lon=null;PS.snapType=null;PS.type914=null;PS._914widths=null;
+  PS.basePrice=0;PS.lonPrice=0; resetExtras();
+  ['ms_type_wrap','ms_color_wrap','ms_thick_wrap','ms_lon_wrap','ms_snap_wrap','ms_914_wrap','ms_extras_wrap','ms_qty_wrap'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  ['ms_grade','ms_type','ms_color','ms_thick','ms_lon'].forEach(function(id){
+    document.querySelectorAll('#'+id+' .ps-btn').forEach(function(b){b.classList.remove('on');});
+  });
+  MS_SHEETS = [{len:1.00, count:1}];
+  MS_MODE = 'sheet';
+  MS_AREA_ROWS = [];
+  // reset mode buttons
+  var sb=document.getElementById('msModeSheet'); if(sb){sb.classList.add('on');}
+  var ab=document.getElementById('msModeArea');  if(ab){ab.classList.remove('on');}
+  var sm=document.getElementById('ms_mode_sheet'); if(sm) sm.style.display='block';
+  var am=document.getElementById('ms_mode_area');  if(am) am.style.display='none';
+}
+
+function resetMSFrom(from) {
+  // order: type → thick → color → lon → qty
+  // เพราะสำหรับสี: เลือก type → thick → color → lon
+  var order=['type','thick','color','lon','qty'];
+  var idx=order.indexOf(from);
+  var toHide={'thick':'ms_thick_wrap','color':'ms_color_wrap','lon':'ms_lon_wrap','qty':'ms_qty_wrap'};
+  for(var i=idx;i<order.length;i++){
+    var h=toHide[order[i]];
+    if(h) document.getElementById(h).classList.add('hidden');
+  }
+  if(idx<=0){document.getElementById('ms_type_wrap').classList.add('hidden');}
+  document.getElementById('ms_extras_wrap').classList.add('hidden');
+  document.getElementById('ms_snap_wrap').classList.add('hidden');
+  resetExtras();
+}
+
+// ============================================================
+// EXTRAS
+// ============================================================
+function resetExtras(){
+  PS.puOn=false;PS.puSize=null;PS.puColor=null;PS.puColorExtra=0;PS.puEave=null;
+  PS.puEaveMode=null; PS.puColorNone=false;
+  var eaveInp=document.getElementById('pu_eave_input_wrap'); if(eaveInp) eaveInp.style.display='flex';
+  PS.peOn=false;PS.peEave=null;PS.peEaveMode=null;
+  PS.bendOn=false;PS.bendType=null;PS.bendCount=null;PS.bendGap=null;PS.bendEave=null;
+  PS.bendExtra=0;
+  ['ex_pu','ex_pe','ex_bend'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.checked=false;
+  });
+  ['ex_pu_detail','ex_pe_detail','ex_bend_detail'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.add('hidden');
+  });
+  document.querySelectorAll('#pu_color_btns .ps-xbtn, #pu_eave_btns .ps-xbtn, #pe_eave_btns .ps-xbtn').forEach(function(b){b.classList.remove('on');});
+  var inp=document.getElementById('pu_eave_input_wrap'); if(inp) inp.style.display='flex';
+  var peinp=document.getElementById('pe_eave_input_wrap'); if(peinp) peinp.style.display='flex';
+  var eaveEl=document.getElementById('ex_pu_eave'); if(eaveEl) eaveEl.value='';
+  var bb=document.getElementById('bend_calc_bar'); if(bb) bb.style.display='none';
+  var bc=document.getElementById('ex_bend_count'); if(bc) bc.value='';
+  var bg=document.getElementById('ex_bend_gap');   if(bg) bg.value='';
+  var be=document.getElementById('ex_bend_eave');  if(be) be.value='';
+  // แสดงปุ่ม mode พื้นที่กลับมา
+  var ab=document.getElementById('msModeArea'); if(ab) ab.style.display='inline-flex';
+}
+
+function toggleExtra(type) {
+  var checked=document.getElementById('ex_'+type).checked;
+  document.getElementById('ex_'+type+'_detail').classList.toggle('hidden',!checked);
+  if(type==='pu') PS.puOn=checked;
+  if(type==='pe') PS.peOn=checked;
+  if(type==='bend') {
+    PS.bendOn=checked;
+    // ซ่อน/แสดง mode "แจ้งพื้นที่" ถ้าย้ำโค้งเปิดอยู่
+    var areaBtn=document.getElementById('msModeArea');
+    if(areaBtn) {
+      areaBtn.style.display = checked ? 'none' : 'inline-flex';
+      if(checked && MS_MODE==='area') {
+        // บังคับกลับมา mode แผ่น
+        setMSMode('sheet', document.getElementById('msModeSheet'));
+      }
+    }
+  }
+}
+
+function calcBendExtra() {
+  var cnt = parseFloat(document.getElementById('ex_bend_count').value)||0;
+  var gap = parseFloat(document.getElementById('ex_bend_gap').value)||0;
+  var eave = parseFloat(document.getElementById('ex_bend_eave').value)||0;
+  var extra = Math.round((cnt*gap + eave)/100*100)/100; // แปลง ซม. → ม.
+  PS.bendExtra = extra;
+  var bar = document.getElementById('bend_calc_bar');
+  if(cnt>0 && gap>0) {
+    bar.style.display='block';
+    bar.innerHTML='ย้ำ '+cnt+' ครั้ง × '+gap+' ซม. + เว้นชาย '+eave+' ซม. = <b>+'+extra.toFixed(2)+' ม./แผ่น</b><br>'+
+      'ตัวอย่าง: ตรง 3.00 ม. → จริง <b>'+(3.00+extra).toFixed(2)+' ม.</b>';
+  } else {
+    bar.style.display='none';
+  }
+  // update sheet row summaries
+  renderSheetRows();
+  msCalcPrice();
+}
+
+function setPU(btn,size) {
+  PS.puSize=size;
+  document.querySelectorAll('#ex_pu_detail .ps-xbtn[data-pu]').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function setPUColor(btn,color) {
+  PS.puColor=color;
+  PS.puColorExtra=color.includes('+5')?5:0;
+  document.querySelectorAll('#ex_pu_detail .ps-xbtn:not([data-pu])').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function setBendType(btn,type){
+  PS.bendType=type;
+  document.querySelectorAll('#ex_bend_detail .ps-xbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function toggleNoEave(type) {
+  var checked=document.getElementById('ex_'+type+'_noeave').checked;
+  var eaveInput=document.getElementById('ex_'+type+'_eave');
+  if(eaveInput) eaveInput.disabled=checked;
+}
+
+// ============================================================
+// CROP SELECTOR
+// ============================================================
+function setCropType(btn,type) {
+  PS.cropType=type; PS.cropSize=null; PS.cropStyle=null;
+  document.querySelectorAll('#crop_type_btns .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  ['crop_size_wrap','crop_style_wrap','crop_steel_wrap','crop_calc_wrap'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  // แสดง/ซ่อน บริการครอบข้าง
+  var sw = document.getElementById('crop_side_wrap');
+  if(type==='ครอบข้าง') {
+    sw.classList.remove('hidden');
+  } else {
+    sw.classList.add('hidden');
+  }
+  resetCropSteel();
+
+  if(type==='ครอบพับตามแบบ') {
+    var sc=document.getElementById('crop_size_btns');
+    sc.innerHTML='<button class="btn ps-btn" onclick="setCropSizeStep(this,304)">304</button>'+
+                 '<button class="btn ps-btn" onclick="setCropSizeStep(this,457)">457</button>'+
+                 '<button class="btn ps-btn" onclick="setCropSizeStep(this,608)">608</button>'+
+                 '<button class="btn ps-btn" onclick="setCropSizeStep(this,914)">914</button>';
+    document.getElementById('crop_size_wrap').classList.remove('hidden');
+    return;
+  }
+
+  var styles = CROP_STYLES[type]||[];
+  var sizes = [];
+  styles.forEach(function(s){ if(sizes.indexOf(s.size)===-1) sizes.push(s.size); });
+  sizes.sort(function(a,b){return a-b;});
+
+  var sc=document.getElementById('crop_size_btns');
+  sc.innerHTML=sizes.map(function(sz){
+    return '<button class="btn ps-btn" onclick="setCropSizeStep(this,'+sz+')">'+sz+'</button>';
+  }).join('');
+  document.getElementById('crop_size_wrap').classList.remove('hidden');
+}
+
+function toggleCropBend() {
+  var checked = document.getElementById('crop_svc_bend').checked;
+  var wrap = document.getElementById('crop_svc_bend_side_wrap');
+  if(wrap) wrap.style.display = checked ? 'flex' : 'none';
+  if(!checked) {
+    var bl=document.getElementById('crop_svc_bend_left');
+    var br=document.getElementById('crop_svc_bend_right');
+    if(bl) bl.checked=false;
+    if(br) br.checked=false;
+  }
+}
+
+function setCropSizeStep(btn,size) {
+  PS.cropSize=size; PS.cropStyle=null;
+  document.querySelectorAll('#crop_size_btns .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('crop_style_wrap').classList.add('hidden');
+  document.getElementById('crop_steel_wrap').classList.add('hidden');
+  document.getElementById('crop_calc_wrap').classList.add('hidden');
+  resetCropSteel();
+
+  if(PS.cropType==='ครอบพับตามแบบ') {
+    // ไม่มีแบบ — ไปเลือกเหล็กเลย
+    document.getElementById('crop_steel_wrap').classList.remove('hidden');
+    return;
+  }
+
+  // filter styles by size
+  var styles=(CROP_STYLES[PS.cropType]||[]).filter(function(s){return s.size===size;});
+  if(!styles.length){ document.getElementById('crop_steel_wrap').classList.remove('hidden'); return; }
+
+  var c=document.getElementById('crop_style_btns');
+  c.innerHTML=styles.map(function(s){
+    var imgs = getCropImagesForType(PS.cropType, size);
+    var img = imgs.find(function(r){return r.no===s.no;});
+    var thumb = img ? '<img src="'+img.url+'" style="width:48px;height:36px;object-fit:cover;border-radius:4px;display:block;margin:0 auto 3px" onerror="this.style.display=\'none\'">' : '';
+    return '<button class="btn ps-btn" onclick="setCropStyle(this,'+s.no+','+s.size+')" style="flex-direction:column;padding:6px 10px;min-width:64px">'+thumb+'แบบ '+s.no+'</button>';
+  }).join('');
+  document.getElementById('crop_img_wrap').innerHTML='';
+  document.getElementById('crop_style_wrap').classList.remove('hidden');
+}
+
+function setCropStyle(btn,no,size) {
+  PS.cropStyle=no;
+  document.querySelectorAll('#crop_style_btns .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  showCropImage(PS.cropType, size, no);
+  document.getElementById('crop_steel_wrap').classList.remove('hidden');
+  document.getElementById('crop_calc_wrap').classList.add('hidden');
+  resetCropSteel();
+}
+
+function setCropSize(btn,size) {
+  PS.cropSize=size;
+  document.querySelectorAll('#crop_size_wrap .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function resetCropSteel(){
+  PS.cropGrade=null;PS.cropSteelType=null;PS.cropColor=null;PS.cropThick=null;
+  document.querySelectorAll('#crop_grade .ps-btn').forEach(function(b){b.classList.remove('on');});
+  ['crop_type_wrap','crop_color_wrap','crop_thick_wrap'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+}
+
+function selectCropGrade(grade,btn) {
+  PS.cropGrade=grade;PS.cropSteelType=null;PS.cropColor=null;PS.cropThick=null;
+  document.querySelectorAll('#crop_grade .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  ['crop_type_wrap','crop_color_wrap','crop_thick_wrap'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
+  document.getElementById('crop_calc_wrap').classList.add('hidden');
+
+  var c=document.getElementById('crop_type');
+  if(grade==='เหล็กนอก'){
+    c.innerHTML='<button class="btn ps-btn" onclick="selectCropType(\'อลูซิงค์\',this)">อลูซิงค์</button>'+
+                '<button class="btn ps-btn" onclick="selectCropType(\'สี\',this)">สี</button>';
+  } else if(grade==='บลูสโคป'){
+    c.innerHTML='<button class="btn ps-btn" onclick="selectCropType(\'อลูซิงค์\',this)">อลูซิงค์</button>'+
+                '<button class="btn ps-btn" onclick="selectCropType(\'สี\',this)">สี</button>';
+  } else {
+    c.innerHTML='<button class="btn ps-btn" onclick="selectCropType(\'อลูซิงค์\',this)">AZ150 อลูซิงค์</button>';
+  }
+  document.getElementById('crop_type_wrap').classList.remove('hidden');
+}
+
+function selectCropType(type,btn) {
+  PS.cropSteelType=type;PS.cropColor=null;PS.cropThick=null;
+  document.querySelectorAll('#crop_type .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  ['crop_color_wrap','crop_thick_wrap'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
+  document.getElementById('crop_calc_wrap').classList.add('hidden');
+
+  if(type==='สี') {
+    // ความหนาก่อนสี
+    var thicksForColor = PS.cropGrade==='เหล็กนอก' ? ['0.30','0.35','0.40'] : ['0.35','0.40','0.47'];
+    var c=document.getElementById('crop_thick');
+    c.innerHTML=thicksForColor.map(function(t){
+      return '<button class="btn ps-btn" onclick="selectCropThickForColor(\''+t+'\',this)">'+t+' มม.</button>';
+    }).join('');
+    document.getElementById('crop_thick_wrap').classList.remove('hidden');
+  } else {
+    buildCropThick();
+  }
+}
+
+function selectCropThickForColor(thick,btn) {
+  PS.cropThick=thick; PS.cropColor=null;
+  document.querySelectorAll('#crop_thick .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('crop_color_wrap').classList.remove('hidden');
+  document.getElementById('crop_calc_wrap').classList.add('hidden');
+  var colors=PS.cropGrade==='เหล็กนอก'?NK_COLORS:BS_COLORS;
+  var c=document.getElementById('crop_color');
+  c.innerHTML=colors.map(function(col){
+    return '<button class="btn ps-btn" onclick="selectCropColor(\''+col+'\',this)">'+col+'</button>';
+  }).join('');
+}
+
+function selectCropColor(color,btn) {
+  PS.cropColor=color;
+  document.querySelectorAll('#crop_color .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+
+  // แจ้งเตือนลายไม้ในครอบ
+  var woodWarn = document.getElementById('crop_wood_warn');
+  if(!woodWarn) {
+    woodWarn = document.createElement('div');
+    woodWarn.id = 'crop_wood_warn';
+    woodWarn.style.cssText = 'display:none;margin-top:6px;padding:8px 12px;background:rgba(239,68,68,.1);border:1px solid var(--red);border-radius:8px;font-size:12px;color:var(--red)';
+    var colorWrap = document.getElementById('crop_color_wrap');
+    if(colorWrap) colorWrap.appendChild(woodWarn);
+  }
+  if(color==='สีลายไม้เข้ม' || color==='สีลายไม้อ่อน') {
+    woodWarn.style.display='block';
+    woodWarn.innerHTML='⚠️ <b>แจ้งเตือนลายไม้</b><br>ครอบลายไม้มีความกว้าง 0.91 ม. ลายจะอยู่แนว<b>ขวาง</b> ไม่ใช่แนวยาว<br>กรุณาแจ้งลูกค้าก่อนยืนยันคำสั่งซื้อ';
+  } else {
+    woodWarn.style.display='none';
+  }
+  // ถ้าเลือก thick สำหรับสีแล้ว ไม่ต้อง buildCropThick ใหม่
+  if(PS.cropSteelType==='สี' && PS.cropThick) {
+    // หาราคาตาม thick+color แล้วไปแสดง calc
+    var p=S.products.find(function(x){
+      var g=x['ประเภทเหล็ก']||'';
+      var grp=PS.cropGrade==='เหล็กนอก'?'เหล็กนอก สี':'บลูสโคป สี';
+      return g===grp && x['ความหนา']===PS.cropThick && x['สี']===color;
+    });
+    PS.cropBasePrice=p?(parseFloat(p['ราคา/หน่วย'])||0):0;
+    PS._cropWarranty=p?(p['หมายเหตุ/รับประกัน']||''):'';
+    var cp=calcCropPrice(PS.cropBasePrice,PS.cropSize||304);
+    document.getElementById('crop_price_input').value=cp;
+    document.getElementById('crop_calc_wrap').classList.remove('hidden');
+    initCropSheetRows();
+    calcCropTotal();
+  } else {
+    buildCropThick();
+  }
+}
+
+function buildCropThick() {
+  var matches=S.products.filter(function(p){
+    var g=p['ประเภทเหล็ก']||'';
+    if(PS.cropGrade==='เหล็กนอก'){
+      if(PS.cropSteelType==='อลูซิงค์') return g==='เหล็กนอก' && p['สี']==='ไม่มีสี';
+      if(PS.cropSteelType==='สี') return g==='เหล็กนอก สี' && p['สี']===PS.cropColor;
+    }
+    if(PS.cropGrade==='บลูสโคป'){
+      if(PS.cropSteelType==='อลูซิงค์') return g==='บลูสโคป' && p['สี']==='ไม่มีสี';
+      if(PS.cropSteelType==='สี') return g==='บลูสโคป สี' && p['สี']===PS.cropColor;
+    }
+    if(PS.cropGrade==='BSI') return g==='BSI';
+    return false;
+  });
+  var thicks=[];
+  matches.forEach(function(p){if(thicks.indexOf(p['ความหนา'])===-1)thicks.push(p['ความหนา']);});
+  thicks.sort();
+  var c=document.getElementById('crop_thick');
+  c.innerHTML=thicks.map(function(t){
+    return '<button class="btn ps-btn" onclick="selectCropThick(\''+t+'\',this)">'+t+' มม.</button>';
+  }).join('');
+  document.getElementById('crop_thick_wrap').classList.remove('hidden');
+}
+
+function selectCropThick(thick,btn) {
+  PS.cropThick=thick;
+  document.querySelectorAll('#crop_thick .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+
+  // find base price
+  var p=S.products.find(function(x){
+    var g=x['ประเภทเหล็ก']||'';
+    if(PS.cropGrade==='เหล็กนอก'){
+      if(PS.cropSteelType==='อลูซิงค์') return g==='เหล็กนอก'&&x['สี']==='ไม่มีสี'&&x['ความหนา']===thick;
+      if(PS.cropSteelType==='สี') return g==='เหล็กนอก สี'&&x['สี']===PS.cropColor&&x['ความหนา']===thick;
+    }
+    if(PS.cropGrade==='บลูสโคป'){
+      if(PS.cropSteelType==='อลูซิงค์') return g==='บลูสโคป'&&x['สี']==='ไม่มีสี'&&x['ความหนา']===thick;
+      if(PS.cropSteelType==='สี') return g==='บลูสโคป สี'&&x['สี']===PS.cropColor&&x['ความหนา']===thick;
+    }
+    if(PS.cropGrade==='BSI') return g==='BSI'&&x['ความหนา']===thick;
+    return false;
+  });
+  PS.cropBasePrice=p?(parseFloat(p['ราคา/หน่วย'])||0):0;
+  PS._cropWarranty=p?(p['หมายเหตุ/รับประกัน']||''):'';
+
+  // calc crop price per meter
+  var sz=PS.cropSize||304;
+  var cp=calcCropPrice(PS.cropBasePrice,sz);
+  document.getElementById('crop_price_input').value=cp;
+  document.getElementById('crop_calc_wrap').classList.remove('hidden');
+  initCropSheetRows();
+  calcCrop();
+}
+
+function calcCropPrice(base, size) {
+  var price = 0;
+  var formula = '';
+  if(size===304) {
+    price = Math.ceil(base/3 + 10);
+    formula = base>0 ? '('+base+' ÷ 3) + 10 = '+price+' บาท/ม.' : '';
+  } else if(size===457) {
+    price = Math.ceil(base/2 + 10);
+    formula = base>0 ? '('+base+' ÷ 2) + 10 = '+price+' บาท/ม.' : '';
+  } else if(size===608) {
+    price = Math.ceil(base/3*2 + 20);
+    formula = base>0 ? '('+base+' ÷ 3 × 2) + 20 = '+price+' บาท/ม.' : '';
+  } else {
+    price = base + 10;
+    formula = base>0 ? base+' + 10 = '+price+' บาท/ม.' : '';
+  }
+  // แสดง hint สูตรคำนวณ
+  var hint = document.getElementById('crop_price_hint');
+  if(!hint) {
+    hint = document.createElement('div');
+    hint.id = 'crop_price_hint';
+    hint.style.cssText = 'font-size:11px;color:var(--text3);margin-top:3px';
+    var inp = document.getElementById('crop_price_input');
+    if(inp && inp.parentNode) inp.parentNode.insertBefore(hint, inp.nextSibling);
+  }
+  hint.textContent = formula ? '💡 '+formula : '';
+  return price;
+}
+
+var CROP_IMAGES = [
+  {code:"CROP-JA-304-1",type:"ครอบจั่ว",size:304,no:1,url:"https://pengkitk.github.io/tk-pos/1.png"},
+  {code:"CROP-JA-304-2",type:"ครอบจั่ว",size:304,no:2,url:"https://pengkitk.github.io/tk-pos/2.png"},
+  {code:"CROP-JA-304-3",type:"ครอบจั่ว",size:304,no:3,url:"https://pengkitk.github.io/tk-pos/3.png"},
+  {code:"CROP-JA-457-4",type:"ครอบจั่ว",size:457,no:4,url:"https://pengkitk.github.io/tk-pos/4.png"},
+  {code:"CROP-JA-457-5",type:"ครอบจั่ว",size:457,no:5,url:"https://pengkitk.github.io/tk-pos/5.png"},
+  {code:"CROP-JA-457-6",type:"ครอบจั่ว",size:457,no:6,url:"https://pengkitk.github.io/tk-pos/6.png"},
+  {code:"CROP-KH-304-7",type:"ครอบข้าง",size:304,no:7,url:"https://pengkitk.github.io/tk-pos/7.png"},
+  {code:"CROP-KH-457-8",type:"ครอบข้าง",size:457,no:8,url:"https://pengkitk.github.io/tk-pos/8.png"},
+  {code:"CROP-KH-304-9",type:"ครอบข้าง",size:304,no:9,url:"https://pengkitk.github.io/tk-pos/9.png"},
+  {code:"CROP-KH-457-10",type:"ครอบข้าง",size:457,no:10,url:"https://pengkitk.github.io/tk-pos/10.png"},
+  {code:"CROP-CH-304-11",type:"ครอบชนผนัง",size:304,no:11,url:"https://pengkitk.github.io/tk-pos/11.png"},
+  {code:"CROP-CH-304-12",type:"ครอบชนผนัง",size:304,no:12,url:"https://pengkitk.github.io/tk-pos/12.png"},
+  {code:"CROP-CH-457-13",type:"ครอบชนผนัง",size:457,no:13,url:"https://pengkitk.github.io/tk-pos/13.png"},
+  {code:"CROP-CH-457-14",type:"ครอบชนผนัง",size:457,no:14,url:"https://pengkitk.github.io/tk-pos/14.png"},
+  {code:"CROP-BK-304-15",type:"ครอบบานเกร็ด",size:304,no:15,url:"https://pengkitk.github.io/tk-pos/15.png"},
+  {code:"CROP-BK-457-16",type:"ครอบบานเกร็ด",size:457,no:16,url:"https://pengkitk.github.io/tk-pos/16.png"},
+];
+
+// crop mode state
+var CROP_MODE = 'manual'; // 'manual' | 'calc'
+var CROP_SHEETS = [{len:1.00, count:1, note:''}];
+
+function showCropImage(type, size, no) {
+  var match = CROP_IMAGES.find(function(r){
+    return r.type===type && r.size===size && r.no===no;
+  });
+  var wrap = document.getElementById('crop_img_wrap');
+  if(!wrap) return;
+  if(match) {
+    wrap.innerHTML = '<img src="'+match.url+'" alt="แบบ '+no+'" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border);margin-top:8px" onerror="this.parentNode.innerHTML=\'<div style=&quot;font-size:12px;color:var(--text3);margin-top:6px&quot;>ไม่สามารถโหลดรูปได้</div>\'">';
+  } else {
+    wrap.innerHTML = '';
+  }
+}
+
+function getCropImagesForType(type, size) {
+  return CROP_IMAGES.filter(function(r){ return r.type===type && r.size===size; });
+} // 'manual' | 'calc'
+var CROP_SHEETS = [{len:1.00, count:1, note:''}];
+
+function setCropMode(mode, btn) {
+  CROP_MODE = mode;
+  document.querySelectorAll('#crop_calc_wrap .ps-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('crop_mode_calc').style.display = mode==='calc' ? 'block' : 'none';
+  document.getElementById('crop_mode_manual').style.display = mode==='manual' ? 'block' : 'none';
+  calcCropTotal();
+}
+
+function initCropSheetRows() {
+  CROP_SHEETS = [{len:1.00, count:1, note:''}];
+  renderCropSheetRows();
+}
+
+function addCropSheetRow() {
+  syncCropFromDOM();
+  CROP_SHEETS.push({len:1.00, count:1, note:''});
+  renderCropSheetRows();
+  calcCropTotal();
+}
+
+function removeCropSheetRow(idx) {
+  syncCropFromDOM();
+  if(CROP_SHEETS.length<=1) return;
+  CROP_SHEETS.splice(idx,1);
+  renderCropSheetRows();
+  calcCropTotal();
+}
+
+function updateCropSheetRow(idx, field, val) {
+  CROP_SHEETS[idx][field] = parseFloat(val)||0;
+  calcCropTotal();
+}
+
+function syncCropFromDOM() {
+  var rows = document.querySelectorAll('#crop_sheet_rows .cs-row');
+  rows.forEach(function(row, idx) {
+    if(idx >= CROP_SHEETS.length) return;
+    var lenInput  = row.querySelector('.cs-len');
+    var cntInput  = row.querySelector('.cs-cnt');
+    var noteInput = row.querySelector('.cs-note');
+    if(lenInput)  CROP_SHEETS[idx].len   = parseFloat(lenInput.value)||0;
+    if(cntInput)  CROP_SHEETS[idx].count = parseInt(cntInput.value)||0;
+    if(noteInput) CROP_SHEETS[idx].note  = noteInput.value||'';
+  });
+}
+
+function updateCropRowSummary(idx) {
+  var row = document.querySelectorAll('#crop_sheet_rows .cs-row')[idx];
+  if(!row) return;
+  var lenInput  = row.querySelector('.cs-len');
+  var cntInput  = row.querySelector('.cs-cnt');
+  var noteInput = row.querySelector('.cs-note');
+  var len = parseFloat(lenInput ? lenInput.value : 0)||0;
+  var cnt = parseInt(cntInput ? cntInput.value : 0)||0;
+  var note = noteInput ? noteInput.value : (CROP_SHEETS[idx] ? (CROP_SHEETS[idx].note||'') : '');
+  if(idx < CROP_SHEETS.length) CROP_SHEETS[idx] = {len:len, count:cnt, note:note};
+  var span = row.querySelector('.cs-row-sum');
+  if(span) span.textContent = CROP_SHEETS.length>1 ? '= '+(Math.round(len*cnt*100)/100).toFixed(2)+' ม.' : '';
+  calcCropTotal();
+}
+
+function renderCropSheetRows() {
+  var wrap = document.getElementById('crop_sheet_rows');
+  if(!wrap) return;
+  wrap.innerHTML = CROP_SHEETS.map(function(row,idx){
+    var hasNote = row.note && row.note.trim();
+    return '<div class="cs-row" style="background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:4px">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+        '<span style="font-size:12px;color:var(--text3);min-width:16px;font-weight:600">'+(idx+1)+'.</span>' +
+        '<span style="font-size:13px;color:var(--text2)">ยาว</span>' +
+        '<input class="cs-len" type="number" value="'+(row.len!==''&&row.len!==null?(+row.len).toFixed(2):'')+'" min="0.1" step="0.01" style="width:76px" oninput="updateCropRowSummary('+idx+')">' +
+        '<span style="font-size:13px;color:var(--text2)">ม.</span>' +
+        '<input class="cs-cnt" type="number" value="'+row.count+'" min="1" step="1" style="width:56px" oninput="updateCropRowSummary('+idx+')">' +
+        '<span style="font-size:13px;color:var(--text2)">ชิ้น</span>' +
+        '<span class="cs-row-sum" style="font-size:12px;color:var(--accent2);flex:1">'+(CROP_SHEETS.length>1 ? (Math.round(row.len*row.count*100)/100).toFixed(2)+' ม.' : '')+'</span>' +
+        '<button onclick="toggleCropRowNote('+idx+')" id="cnote_btn_'+idx+'" style="background:none;border:1px solid '+(hasNote?'var(--yellow)':'var(--border)')+';border-radius:6px;cursor:pointer;font-size:11px;padding:2px 8px;color:'+(hasNote?'var(--yellow)':'var(--text3)')+'">📝</button>' +
+        (CROP_SHEETS.length>1 ? '<button class="btn btn-danger btn-sm" onclick="removeCropSheetRow('+idx+')" style="padding:3px 8px">✕</button>' : '') +
+      '</div>' +
+      '<div id="cnote_wrap_'+idx+'" style="display:'+(hasNote?'block':'none')+';margin-top:5px">' +
+        '<input class="cs-note" type="text" value="'+(row.note||'')+'" placeholder="เช่น แนวสันหลังคา, ฝั่งซ้าย" style="font-size:12px;width:100%;padding:4px 8px;color:var(--text3)" oninput="updateCropRowSummary('+idx+')">' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleCropRowNote(idx) {
+  syncCropFromDOM();
+  var wrap = document.getElementById('cnote_wrap_'+idx);
+  var btn  = document.getElementById('cnote_btn_'+idx);
+  if(!wrap) return;
+  var show = wrap.style.display==='none';
+  wrap.style.display = show ? 'block' : 'none';
+  if(show) { wrap.querySelector('.cs-note').focus(); }
+  else {
+    if(idx < CROP_SHEETS.length) CROP_SHEETS[idx].note = '';
+    if(btn) { btn.style.borderColor='var(--border)'; btn.style.color='var(--text3)'; }
+  }
+}
+
+function calcCrop() {
+  calcCropTotal();
+}
+
+function calcCropTotal() {
+  var pricePerM = parseFloat(document.getElementById('crop_price_input').value)||0;
+  var sz = PS.cropSize||304;
+  var piecesPerSheet = sz<=304?3:2;
+  var totalLen = 0;
+  var noteText = '';
+
+  if(CROP_MODE==='calc') {
+    totalLen = parseFloat(document.getElementById('crop_length').value)||0;
+    if(!totalLen) {
+      document.getElementById('crop_result_bar').style.display='none';
+      document.getElementById('crop_total_preview').textContent='฿0';
+      return;
+    }
+    var sheets=1, cutLen=0;
+    for(var s=1;s<=50;s++){
+      var tp=s*piecesPerSheet;
+      var u=Math.ceil(totalLen/tp*100)/100;
+      cutLen=parseFloat((u+0.10).toFixed(2));
+      if(cutLen<=3.10){sheets=s;break;}
+    }
+    var totalPieces=sheets*piecesPerSheet;
+    var u2=Math.ceil(totalLen/totalPieces*100)/100;
+    cutLen=parseFloat((u2+0.10).toFixed(2));
+    var realLen=parseFloat((cutLen*totalPieces).toFixed(2));
+    var excess=parseFloat((realLen-totalLen).toFixed(2));
+    var rb=document.getElementById('crop_result_bar');
+    rb.style.display='block';
+    rb.innerHTML='<b>'+sheets+' แผ่น</b> | ตัด <b>'+cutLen+' ม./ชิ้น</b> | รวม <b>'+totalPieces+' ชิ้น</b><br>'+
+      'ยาวรวมจริง '+realLen+' ม. | เผื่อเกิน '+excess+' ม.';
+    noteText='- ตัด '+cutLen+' ม./ชิ้น | '+sheets+' แผ่น | '+totalPieces+' ชิ้น';
+  } else {
+    // manual — sync from DOM first
+    syncCropFromDOM();
+    CROP_SHEETS.forEach(function(r){ totalLen += Math.round(r.len*r.count*100)/100; });
+    totalLen = Math.round(totalLen*100)/100;
+    var mb=document.getElementById('crop_manual_bar');
+    if(totalLen>0){
+      mb.style.display='block';
+      mb.innerHTML = CROP_SHEETS.map(function(r){
+        return '- ยาว '+r.len.toFixed(2)+' ม. '+r.count+' ชิ้น = '+(Math.round(r.len*r.count*100)/100).toFixed(2)+' ม.';
+      }).join('<br>')+'<br><b>รวม '+totalLen+' ม.</b>';
+    } else mb.style.display='none';
+    noteText = CROP_SHEETS.map(function(r){
+      return '- ยาว '+r.len.toFixed(2)+' เมตร '+r.count+' ชิ้น'+(r.note&&r.note.trim()?' ('+r.note.trim()+')':'');
+    }).join('\n');
+  }
+
+  window._cropNoteText = noteText;
+  window._cropTotalLen = totalLen;
+  var total = Math.round(totalLen*pricePerM);
+  document.getElementById('crop_total_preview').textContent='฿'+total.toLocaleString();
+}
+
+function addCropItem() {
+  if(!PS.cropType||!PS.cropSize||!PS.cropThick){
+    showToast('กรุณาเลือกข้อมูลครอบให้ครบ','error'); return;
+  }
+  var totalLen = window._cropTotalLen||0;
+  var pricePerM = parseFloat(document.getElementById('crop_price_input').value)||0;
+  if(!totalLen){showToast('กรุณาใส่ความยาว','error');return;}
+
+  var gradeName = PS.cropGrade||'';
+  var typeName = PS.cropSteelType==='สี'?'สี '+PS.cropColor:(PS.cropSteelType||'');
+  var styleLabel = PS.cropStyle ? ' แบบ'+PS.cropStyle : '';
+
+  // บริการพิเศษครอบข้าง
+  var svcParts = [];
+  if(PS.cropType==='ครอบข้าง') {
+    var bendSvc = document.getElementById('crop_svc_bend');
+    if(bendSvc && bendSvc.checked) {
+      var bl = document.getElementById('crop_svc_bend_left').checked;
+      var br = document.getElementById('crop_svc_bend_right').checked;
+      var bendSide = bl&&br?'ซ้าย-ขวา':bl?'ซ้าย':br?'ขวา':'';
+      svcParts.push('ย้ำโค้งตามแบบ'+(bendSide?' '+bendSide:''));
+    }
+  }
+
+  var name = [PS.cropType, PS.cropSize, styleLabel].filter(Boolean).join(' ');
+  if(svcParts.length) name += ' ('+svcParts.join(', ')+')';
+  name += ' '+gradeName+' '+typeName+' '+PS.cropThick;
+  name = name.trim();
+
+  S.items.push({
+    id:'CROP', name:name, qty:totalLen, unit:'เมตร',
+    pricePerUnit:pricePerM, total:Math.round(totalLen*pricePerM),
+    note: window._cropNoteText||'',
+  });
+  renderOrder();
+  showToast('เพิ่ม '+name.substring(0,30),'success');
+
+  // reset crop
+  PS.cropType=null;PS.cropStyle=null;PS.cropSize=null;
+  PS.cropGrade=null;PS.cropSteelType=null;PS.cropColor=null;PS.cropThick=null;
+  CROP_SHEETS=[{len:1.00,count:1}]; CROP_MODE='manual';
+  window._cropTotalLen=0; window._cropNoteText='';
+  // reset checkboxes
+  ['crop_svc_bend','crop_svc_bend_left','crop_svc_bend_right'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.checked=false;
+  });
+  var bsw=document.getElementById('crop_svc_bend_side_wrap'); if(bsw) bsw.style.display='none';
+  CROP_SHEETS=[{len:1.00,count:1}];
+  CROP_MODE='manual';
+  window._cropTotalLen=0; window._cropNoteText='';
+  var cl=document.getElementById('crop_length'); if(cl) cl.value='';
+  ['crop_style_wrap','crop_size_wrap','crop_steel_wrap','crop_calc_wrap'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.querySelectorAll('#pPanel2 .ps-btn').forEach(function(b){b.classList.remove('on');});
+}
+
+// ============================================================
+// OTHER PRODUCTS
+// ============================================================
+// ============================================================
+// CASH PAGE
+// ============================================================
+function showCashPage() {
+  document.getElementById('cashPage').style.display='block';
+  document.getElementById('main-content-wrap').style.display='none';
+  document.getElementById('qtListPage').style.display='none';
+  loadCashSummary();
+}
+
+function hideCashPage() {
+  document.getElementById('cashPage').style.display='none';
+  document.getElementById('main-content-wrap').style.display='block';
+}
+
+function recordCashEntry() {
+  var type   = document.getElementById('cashType').value;
+  var amount = parseFloat(document.getElementById('cashAmount').value)||0;
+  var qtNo   = document.getElementById('cashQTNo').value.trim();
+  var note   = document.getElementById('cashNote').value.trim();
+  if(!amount) { showToast('กรุณาใส่จำนวนเงิน','error'); return; }
+  api('recordCash', {
+    username: S.user.username,
+    name:     S.user.name,
+    type:     type,
+    amount:   amount,
+    qtNo:     qtNo,
+    note:     note,
+  }, function(r) {
+    if(r.success) {
+      showToast('บันทึกรับเงิน ฿'+amount.toLocaleString()+' แล้ว','success');
+      document.getElementById('cashAmount').value='';
+      document.getElementById('cashQTNo').value='';
+      document.getElementById('cashNote').value='';
+      // อัพเดทสถานะ QT ถ้ามีเลข QT
+      if(qtNo) {
+        var newStatus = type==='ชำระครบ' ? 'ชำระครบ' : type==='มัดจำ' ? 'มัดจำแล้ว' : null;
+        if(newStatus) api('updateQuotation',{quotationNo:qtNo,payStatus:newStatus,deposit:type==='มัดจำ'?amount:undefined},function(){});
+      }
+      loadCashSummary();
+    } else showToast(r.message||'เกิดข้อผิดพลาด','error');
+  });
+}
+
+function loadCashSummary() {
+  var wrap = document.getElementById('cashSummaryWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">⏳ กำลังโหลด...</div>';
+  api('getCashSummary',{username:S.user.username,name:S.user.name,role:S.user.role},function(r){
+    if(!r.success){wrap.innerHTML='<div style="color:var(--red);padding:16px">'+r.message+'</div>';return;}
+    var list = r.summary||[];
+    if(!list.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">ยังไม่มีรายการ</div>';return;}
+    var html = '';
+    list.forEach(function(person){
+      html += '<div class="card" style="margin-bottom:12px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+          '<div style="font-weight:700;font-size:15px">👤 '+person.name+'</div>' +
+          '<div style="font-size:18px;font-weight:700;color:var(--green)">฿'+Number(person.total).toLocaleString()+'</div>' +
+        '</div>';
+      // รายการล่าสุด 5 รายการ
+      var recent = (person.entries||[]).slice(-5).reverse();
+      if(recent.length) {
+        html += '<div style="display:flex;flex-direction:column;gap:4px">';
+        recent.forEach(function(e){
+          html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)">' +
+            '<div><span style="color:var(--text3)">'+e.datetime+'</span>' +
+            (e.qtNo?' <span style="color:var(--accent)">'+e.qtNo+'</span>':'')+
+            ' <span style="color:var(--text2)">'+e.type+'</span>' +
+            (e.note?' · <span style="color:var(--text3)">'+e.note+'</span>':'')+'</div>' +
+            '<div style="font-weight:600;color:var(--green)">+฿'+Number(e.amount).toLocaleString()+'</div>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    // รวมทั้งหมด (admin เท่านั้น)
+    if(r.isAdmin && list.length>1) {
+      var grandTotal = list.reduce(function(s,p){return s+Number(p.total);},0);
+      html = '<div class="card" style="margin-bottom:12px;background:rgba(52,211,153,.08);border:1px solid var(--green)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<div style="font-weight:700">💵 รวมเงินสดทั้งหมด</div>' +
+          '<div style="font-size:22px;font-weight:700;color:var(--green)">฿'+grandTotal.toLocaleString()+'</div>' +
+        '</div></div>' + html;
+    }
+    wrap.innerHTML = html;
+  });
+}
+
+// ============================================================
+// QT LIST — เพิ่ม delivery date
+// ============================================================
+// ============================================================
+var _qtListData = [];
+var _updateQTNo = null;
+
+function showQTList() {
+  document.getElementById('qtListPage').style.display='block';
+  document.getElementById('main-content-wrap').style.display='none';
+  loadQTList();
+}
+
+function hideQTList() {
+  document.getElementById('qtListPage').style.display='none';
+  document.getElementById('main-content-wrap').style.display='block';
+}
+
+function loadQTList() {
+  var wrap = document.getElementById('qtListWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">⏳ กำลังโหลด...</div>';
+  api('getQuotationList',{query:'',status:''},function(r){
+    if(!r.success){wrap.innerHTML='<div style="color:var(--red);padding:16px">'+r.message+'</div>';return;}
+    _qtListData = r.list||[];
+    renderQTList(_qtListData);
+  });
+}
+
+function filterQTList() {
+  var q = (document.getElementById('qtSearch').value||'').toLowerCase();
+  var st = document.getElementById('qtStatusFilter').value;
+  var filtered = _qtListData.filter(function(r){
+    var matchQ = !q || (r.quotationNo+'').toLowerCase().includes(q) || (r.customerName+'').toLowerCase().includes(q) || (r.customerTel+'').includes(q);
+    var matchSt = !st || r.payStatus===st;
+    return matchQ && matchSt;
+  });
+  renderQTList(filtered);
+}
+
+function renderQTList(list) {
+  var wrap = document.getElementById('qtListWrap');
+  if(!list.length){
+    wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">ไม่พบรายการ</div>';
+    return;
+  }
+  var statusColor = {'รอชำระ':'var(--yellow)','มัดจำแล้ว':'var(--accent)','ชำระครบ':'var(--green)','ยกเลิก':'var(--red)'};
+  wrap.innerHTML = list.map(function(r){
+    var sc = statusColor[r.payStatus]||'var(--text3)';
+    var balance = r.balance||0;
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">' +
+        '<div style="flex:1;min-width:160px">' +
+          '<div style="font-weight:700;font-size:15px;margin-bottom:2px">'+r.quotationNo+'</div>' +
+          '<div style="font-size:13px;color:var(--text2)">'+r.customerName+'</div>' +
+          (r.customerTel?'<div style="font-size:12px;color:var(--text3)">📞 '+r.customerTel+'</div>':'') +
+          '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+r.date+' · '+r.salesName+
+          (r.deliveryDate ? ' · 🚚 '+r.deliveryDate : '')+'</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:16px;font-weight:700;color:var(--accent2)">฿'+Number(r.grandTotal).toLocaleString()+'</div>' +
+          (balance>0?'<div style="font-size:12px;color:var(--yellow)">ค้าง ฿'+Number(balance).toLocaleString()+'</div>':'') +
+          '<div style="font-size:12px;font-weight:600;color:'+sc+';margin-top:2px">'+r.payStatus+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">' +
+        '<button class="btn btn-ghost btn-sm" onclick="openUpdateQT(\''+r.quotationNo+'\','+r.grandTotal+','+Number(r.deposit||0)+',\''+r.payStatus+'\',\''+(r.deliveryDate||'')+'\')">✏️ อัพเดทสถานะ</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="loadQTToEdit(\''+r.quotationNo+'\')">📂 โหลดมาแก้ไข</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openUpdateQT(qtNo, grandTotal, deposit, status, deliveryDate) {
+  _updateQTNo = qtNo;
+  _updateQTGrandTotal = grandTotal;
+  document.getElementById('updateQTInfo').textContent = qtNo+' | ยอดรวม ฿'+Number(grandTotal).toLocaleString();
+  document.getElementById('updateQTStatus').value = status||'รอชำระ';
+  document.getElementById('updateQTDeposit').value = deposit||0;
+  document.getElementById('updateQTDelivery').value = deliveryDate||'';
+  document.getElementById('updateQTNote').value = '';
+  updateQTBalancePreview();
+  openModal('updateQTModal');
+}
+
+function updateQTBalancePreview() {
+  var dep = parseFloat(document.getElementById('updateQTDeposit').value)||0;
+  var bal = (_updateQTGrandTotal||0) - dep;
+  document.getElementById('updateQTBalance').innerHTML =
+    'มัดจำ: <b>฿'+dep.toLocaleString()+'</b> | ยอดค้าง: <b style="color:var(--yellow)">฿'+Math.max(0,bal).toLocaleString()+'</b>';
+}
+
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id==='updateQTDeposit') updateQTBalancePreview();
+});
+
+function confirmUpdateQT() {
+  if(!_updateQTNo) return;
+  var status       = document.getElementById('updateQTStatus').value;
+  var deposit      = parseFloat(document.getElementById('updateQTDeposit').value)||0;
+  var note         = document.getElementById('updateQTNote').value;
+  var deliveryDate = document.getElementById('updateQTDelivery').value;
+  api('updateQuotation',{quotationNo:_updateQTNo, payStatus:status, deposit:deposit, note:note}, function(r){
+    if(r.success){
+      if(deliveryDate) api('updateQTDelivery',{quotationNo:_updateQTNo, deliveryDate:deliveryDate},function(){});
+      showToast('อัพเดท '+_updateQTNo+' แล้ว','success');
+      closeModal('updateQTModal');
+      loadQTList();
+    } else showToast(r.message||'เกิดข้อผิดพลาด','error');
+  });
+}
+
+function loadQTToEdit(qtNo) {
+  showToast('⏳ กำลังโหลด '+qtNo,'success');
+  api('getQuotationDetail',{quotationNo:qtNo},function(r){
+    if(!r.success){showToast(r.message||'ไม่พบ QT','error');return;}
+    var d = r.detail;
+    // โหลด items กลับมาใน S
+    S.items = d.items||[];
+    S.quotationNo = d.quotationNo;
+    S.sheetId = d.sheetId;
+    renderOrder();
+    hideQTList();
+    showStep(2);
+    showToast('โหลด '+qtNo+' สำเร็จ — แก้ไขได้เลย','success');
+  });
+}
+// ============================================================
+var OTHER_PRODUCTS = [];
+var OTHER_CAT_FILTER = '';
+
+function buildOtherProducts() {
+  // ดึงสินค้าที่ไม่ใช่เมทัลชีท และไม่ใช่ Service จาก products
+  var excluded = ['เหล็กนอก','เหล็กนอก สี','บลูสโคป','บลูสโคป สี','BSI','Colorbond','Service'];
+  OTHER_PRODUCTS = S.products.filter(function(p){
+    return excluded.indexOf(p['ประเภทเหล็ก'])===-1;
+  }).map(function(p){
+    return {
+      id: p['รหัสสินค้า'],
+      name: p['ชื่อสินค้า'],
+      price: parseFloat(p['ราคา/หน่วย'])||0,
+      unit: p['หน่วย']||'ชิ้น',
+      cat: p['ประเภทเหล็ก']||'อื่นๆ',
+      note: p['หมายเหตุ/รับประกัน']||''
+    };
+  });
+
+  // build category buttons
+  var cats = [];
+  OTHER_PRODUCTS.forEach(function(p){ if(cats.indexOf(p.cat)===-1) cats.push(p.cat); });
+  var wrap = document.getElementById('other_cat_btns');
+  if(wrap) {
+    wrap.innerHTML = '<button class="filter-btn active" onclick="setOtherCat(this,\'\')">ทั้งหมด</button>' +
+      cats.map(function(c){
+        return '<button class="filter-btn" onclick="setOtherCat(this,\''+c+'\')">'+c+'</button>';
+      }).join('');
+  }
+  renderOtherProductList(OTHER_PRODUCTS);
+}
+
+function setOtherCat(btn, cat) {
+  OTHER_CAT_FILTER = cat;
+  document.querySelectorAll('#other_cat_btns .filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  filterOtherProducts();
+}
+
+function filterOtherProducts() {
+  var q = (document.getElementById('otherSearch').value||'').toLowerCase();
+  var filtered = OTHER_PRODUCTS.filter(function(p){
+    var matchCat = !OTHER_CAT_FILTER || p.cat===OTHER_CAT_FILTER;
+    var matchQ = !q || p.name.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderOtherProductList(filtered);
+}
+
+function renderOtherProductList(list) {
+  var wrap = document.getElementById('other_product_list');
+  if(!wrap) return;
+  if(!list.length) {
+    wrap.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">ไม่พบสินค้า</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(function(p){
+    var idx = OTHER_PRODUCTS.indexOf(p);
+    var priceText = p.price>0 ? '฿'+p.price.toLocaleString()+'/'+p.unit : '—';
+    var isMeter = p.unit === 'เมตร';
+    var qtyLabel = isMeter ? 'จำนวน' : p.unit;
+    var meterRow = isMeter
+      ? '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;padding:8px 10px;background:rgba(59,130,246,.06);border-radius:8px;border:1px solid rgba(59,130,246,.2)">' +
+          '<span style="font-size:12px;color:var(--text3)">ยาว</span>' +
+          '<input type="number" value="" min="0.01" step="0.01" id="olen_'+idx+'" placeholder="0.00" style="width:70px;font-size:13px;padding:4px 6px;text-align:right" oninput="calcOtherMeter('+idx+')">' +
+          '<span style="font-size:12px;color:var(--text3)">ม. ×</span>' +
+          '<input type="number" value="1" min="1" step="1" id="oqty_'+idx+'" style="width:52px;font-size:13px;padding:4px 6px;text-align:right" oninput="calcOtherMeter('+idx+')">' +
+          '<span style="font-size:12px;color:var(--text3)">แผ่น =</span>' +
+          '<span id="ometer_'+idx+'" style="font-size:13px;font-weight:600;color:var(--accent2);min-width:48px">0 ม.</span>' +
+        '</div>'
+      : '';
+    var qtyInput = isMeter
+      ? '' // ซ่อน qty input หลัก ใช้ row ด้านล่างแทน
+      : '<input class="pr-qty" type="number" value="1" min="1" id="oqty_'+idx+'">';
+    var unitLabel = isMeter ? '' : '<span class="pr-unit">'+p.unit+'</span>';
+    return '<div class="prod-row" style="flex-direction:column;align-items:stretch">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="flex:1">' +
+          '<div class="pr-name">'+p.name+'</div>' +
+          (p.note ? '<div class="pr-sub">'+p.note+'</div>' : '') +
+        '</div>' +
+        '<div class="pr-price">'+priceText+'</div>' +
+        qtyInput +
+        unitLabel +
+        '<button onclick="toggleOtherNote('+idx+')" id="onote_btn_'+idx+'" style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:11px;padding:2px 8px;color:var(--text3)">📝</button>' +
+        '<button class="btn btn-success btn-sm" onclick="addOtherItem('+idx+')">+ เพิ่ม</button>' +
+      '</div>' +
+      meterRow +
+      '<div id="onote_wrap_'+idx+'" style="display:none;margin-top:5px">' +
+        '<input class="other-note" type="text" id="onote_'+idx+'" placeholder="หมายเหตุ..." style="font-size:12px;width:100%;padding:4px 8px;color:var(--text3)">' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function calcOtherMeter(idx) {
+  var qtyEl = document.getElementById('oqty_'+idx);
+  var lenEl = document.getElementById('olen_'+idx);
+  var meterEl = document.getElementById('ometer_'+idx);
+  if(!qtyEl || !lenEl || !meterEl) return;
+  var qty = parseInt(qtyEl.value)||0;
+  var len = parseFloat(lenEl.value)||0;
+  var total = Math.round(qty * len * 100) / 100;
+  meterEl.textContent = (total > 0 ? total.toFixed(2) : '0') + ' ม.';
+}
+
+function toggleOtherNote(idx) {
+  var wrap = document.getElementById('onote_wrap_'+idx);
+  var btn  = document.getElementById('onote_btn_'+idx);
+  if(!wrap) return;
+  var show = wrap.style.display==='none';
+  wrap.style.display = show ? 'block' : 'none';
+  if(show) { document.getElementById('onote_'+idx).focus(); if(btn) {btn.style.borderColor='var(--yellow)';btn.style.color='var(--yellow)';} }
+  else { if(btn) {btn.style.borderColor='var(--border)';btn.style.color='var(--text3)';} }
+}
+
+function addOtherItem(idx) {
+  var p = OTHER_PRODUCTS[idx];
+  if(!p) return;
+  var noteEl = document.getElementById('onote_'+idx);
+  var note = noteEl ? (noteEl.value||'') : '';
+
+  if(p.unit === 'เมตร') {
+    var qtyEl = document.getElementById('oqty_'+idx);
+    var lenEl = document.getElementById('olen_'+idx);
+    var qty = parseInt(qtyEl ? qtyEl.value : 0)||0;
+    var len = parseFloat(lenEl ? lenEl.value : 0)||0;
+    if(!qty || !len) { showToast('กรุณาใส่จำนวนและความยาว','error'); return; }
+    var totalM = Math.round(qty * len * 100) / 100;
+    // note อัตโนมัติ: "20 แผ่น × 10.00 ม."
+    var autoNote = qty + ' แผ่น × ' + len.toFixed(2) + ' ม.';
+    var fullNote = autoNote + (note ? ' | ' + note : '');
+    S.items.push({
+      id: p.id,
+      name: p.name,
+      qty: totalM,
+      unit: 'เมตร',
+      pricePerUnit: p.price,
+      total: Math.round(totalM * p.price),
+      note: fullNote,
+      _sheetQty: qty,
+      _sheetLen: len,
+    });
+  } else {
+    var qtyEl2 = document.getElementById('oqty_'+idx);
+    var qty2 = qtyEl2 ? (parseInt(qtyEl2.value)||1) : 1;
+    S.items.push({id:p.id, name:p.name, qty:qty2, unit:p.unit, pricePerUnit:p.price, total:qty2*p.price, note:note});
+  }
+
+  renderOrder();
+  showToast('เพิ่ม '+p.name,'success');
+}
+
+function addServiceItem(id, name, price, unit) {
+  S.items.push({id:id, name:name, qty:1, unit:unit, pricePerUnit:price, total:price, note:''});
+  renderOrder();
+  showToast('เพิ่ม '+name,'success');
+}
+
+function renderOtherProducts() { buildOtherProducts(); }
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
+function searchCustomers() {
+  clearTimeout(searchTimer);
+  var q = document.getElementById('customerSearch').value.trim();
+  if (!q) { document.getElementById('customerList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">พิมพ์ค้นหาลูกค้า</div>'; return; }
+  searchTimer = setTimeout(function() {
+    api('getCustomers', {query:q}, function(r) { renderCustomerList(r.customers); });
+  }, 300);
+}
+
+function renderCustomerList(list) {
+  window._cList = list;
+  if (!list.length) { document.getElementById('customerList').innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">ไม่พบลูกค้า — กด "+ ใหม่"</div>'; return; }
+  document.getElementById('customerList').innerHTML = list.map(function(c,i) {
+    return '<div class="customer-item" onclick="selectCustomer('+i+')">' +
+      '<div class="customer-name">'+(c.no?'['+c.no+'] ':'')+( c.prefix||'')+(c.firstName||'')+' '+(c.lastName||'')+'</div>' +
+      '<div class="customer-info">'+(c.tel||'')+(c.lineId?' · LINE: '+c.lineId:'')+'</div>' +
+      '<div class="customer-info">'+(c.address||'')+'</div></div>';
+  }).join('');
+}
+
+function selectCustomer(idx) {
+  var c = window._cList[idx];
+  S.customer = c;
+  document.getElementById('noCustomer').style.display = 'none';
+  document.getElementById('selectedCustomerBox').style.display = 'block';
+  document.getElementById('selCustName').textContent = (c.prefix||'')+(c.firstName||'')+' '+(c.lastName||'');
+  document.getElementById('selCustInfo').textContent = (c.tel||'')+(c.lineId?' · LINE: '+c.lineId:'')+(c.address?'\n'+c.address:'');
+  // ถ้าที่อยู่ลูกค้าเป็น "รับหน้าร้าน" ให้ auto set
+  if(c.address && c.address.includes('รับหน้าร้าน')) {
+    var storeBtn = document.getElementById('loc_btn_store');
+    if(storeBtn && !storeBtn.classList.contains('on')) setJobSite(storeBtn,'store');
+  }
+}
+
+function clearCustomer() {
+  S.customer = null;
+  document.getElementById('noCustomer').style.display = 'block';
+  document.getElementById('selectedCustomerBox').style.display = 'none';
+  document.getElementById('customerSearch').value = '';
+  document.getElementById('customerList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">พิมพ์ค้นหาลูกค้า</div>';
+}
+
+function saveNewCustomer() {
+  var params = {
+    prefix: document.getElementById('newPrefix').value,
+    firstName: document.getElementById('newFirstName').value.trim(),
+    lastName: document.getElementById('newLastName').value.trim(),
+    tel: document.getElementById('newTel').value.trim(),
+    lineId: document.getElementById('newLineId').value.trim(),
+    address: document.getElementById('newAddress').value.trim(),
+  };
+  if (!params.firstName) { showToast('กรุณากรอกชื่อลูกค้า','error'); return; }
+  api('addCustomer', params, function(r) {
+    S.customer = Object.assign({no:r.no}, params);
+    document.getElementById('noCustomer').style.display = 'none';
+    document.getElementById('selectedCustomerBox').style.display = 'block';
+    document.getElementById('selCustName').textContent = (params.prefix||'')+params.firstName+' '+(params.lastName||'');
+    document.getElementById('selCustInfo').textContent = (params.tel||'')+(params.address?'\n'+params.address:'');
+    closeModal('addCustomerModal');
+    showToast('เพิ่มลูกค้าเรียบร้อย','success');
+    ['newPrefix','newFirstName','newLastName','newTel','newLineId','newAddress'].forEach(function(id){
+      var el=document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
+    });
+  });
+}
+
+// ============================================================
+// TYPE
+// ============================================================
+function selectType(type) {
+  S.quotationType = type;
+  document.getElementById('typePerson').classList.toggle('selected', type==='person');
+  document.getElementById('typeCompany').classList.toggle('selected', type==='company');
+  document.getElementById('companyFields').classList.toggle('hidden', type!=='company');
+}
+
+// ============================================================
+// STEPS
+// ============================================================
+function showStep(n) {
+  [1,2,3,4].forEach(function(i) {
+    document.getElementById('step'+i).classList.toggle('hidden', i!==n);
+    var btn = document.getElementById('step'+i+'Btn');
+    btn.classList.remove('active','done');
+    if (i===n) btn.classList.add('active');
+    else if (i<n) btn.classList.add('done');
+  });
+}
+
+function goStep2() {
+  if (!S.customer) { showToast('กรุณาเลือกลูกค้าก่อน','error'); return; }
+  if (!S.quotationType) { showToast('กรุณาเลือกประเภทใบเสนอราคา','error'); return; }
+  showStep(2);
+  api('getQuotationNo', {type:S.quotationType}, function(r) {
+    S.quotationNo = r.quotationNo; S.sheetId = r.sheetId;
+    document.getElementById('qtNumber').textContent = r.quotationNo;
+  });
+}
+
+function goStep3() {
+  if (!S.items.length) { showToast('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ','error'); return; }
+  showStep(3); renderStep3Summary();
+}
+
+function goStep4() {
+  if (!S.payMethod) { showToast('กรุณาเลือกวิธีชำระเงิน','error'); return; }
+  S.payStatus = document.getElementById('payStatus').value;
+  S.deposit = parseFloat(document.getElementById('depositAmount').value)||0;
+  showStep(4); renderFinalSummary();
+}
+
+// ADD ITEM modal (kept for compatibility but not used in new UI)
+function openAddItem(){} function confirmAddItem(){}
+
+// ============================================================
+// PU COLOR NO-SELECT
+// ============================================================
+function toggleRowNote(idx) {
+  syncSheetsFromDOM();
+  var wrap = document.getElementById('note_wrap_'+idx);
+  var btn  = document.getElementById('note_btn_'+idx);
+  if(!wrap) return;
+  var show = wrap.style.display==='none';
+  wrap.style.display = show ? 'block' : 'none';
+  if(show) { wrap.querySelector('.ms-note').focus(); }
+  else {
+    // เคลียร์ note ถ้าปิด
+    if(idx < MS_SHEETS.length) MS_SHEETS[idx].note = '';
+    if(btn) { btn.style.borderColor='var(--border)'; btn.style.color='var(--text3)'; }
+  }
+}
+
+function snapSpainAndUpdate(idx, inp) {
+  var len = parseFloat(inp.value)||0;
+  if(len > 0) {
+    var snapped = Math.round(Math.ceil(len/0.25)*0.25*100)/100;
+    if(Math.round(snapped*100) !== Math.round(len*100)) {
+      inp.value = snapped.toFixed(2);
+    }
+  }
+  updateRowSummary(idx);
+}
+
+function stepSpain(idx, delta) {
+  var row = document.querySelectorAll('#ms_sheet_rows .ms-row')[idx];
+  if(!row) return;
+  var inp = row.querySelector('.ms-len');
+  if(!inp) return;
+  var cur = Math.round((parseFloat(inp.value)||0.25)*100)/100;
+  var next = Math.round((cur + delta)*100)/100;
+  if(next < 0.25) next = 0.25;
+  if(next > 12.00) next = 12.00;
+  inp.value = next.toFixed(2);
+  updateRowSummary(idx);
+}
+
+function togglePasteBox() {
+  var box = document.getElementById('paste_box');
+  var btn = document.getElementById('paste_btn');
+  var show = box.style.display==='none';
+  box.style.display = show ? 'block' : 'none';
+  if(show) { document.getElementById('paste_input').value=''; document.getElementById('paste_input').focus(); }
+}
+
+function importPasteText() {
+  var text = document.getElementById('paste_input').value.trim();
+  if(!text) return;
+  var lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  var parsed = [];
+  var errors = [];
+  lines.forEach(function(line, i) {
+    // รองรับ: "5.50 1" หรือ "5.50,1" หรือ "5.50x1" หรือ "5.50  1"
+    var parts = line.split(/[\s,xX×]+/).filter(Boolean);
+    var len = parseFloat(parts[0]);
+    var cnt = parseInt(parts[1])||1;
+    var note = parts.slice(2).join(' ') || '';
+    if(!isNaN(len) && len>0) {
+      parsed.push({len: Math.round(len*100)/100, count: cnt, note: note});
+    } else {
+      errors.push('บรรทัด '+(i+1)+': "'+line+'" ไม่ถูกต้อง');
+    }
+  });
+  if(parsed.length===0) { showToast('ไม่พบข้อมูลที่ถูกต้อง','error'); return; }
+  // append หรือ replace
+  syncSheetsFromDOM();
+  var hasData = MS_SHEETS.some(function(r){ return r.len>0 && r.count>0; });
+  if(hasData) {
+    MS_SHEETS = MS_SHEETS.concat(parsed);
+  } else {
+    MS_SHEETS = parsed;
+  }
+  renderSheetRows();
+  msCalcPrice();
+  togglePasteBox();
+  showToast('นำเข้า '+parsed.length+' แถว'+(errors.length?' (ข้าม '+errors.length+' แถว)':''), 'success');
+}
+
+function setPUColorNone(btn) {
+  // ปุ่ม "ยังไม่ระบุสี" — toggle
+  var wasOn = btn.classList.contains('on');
+  document.querySelectorAll('#pu_color_btns .ps-xbtn').forEach(function(b){b.classList.remove('on');});
+  if(!wasOn) {
+    btn.classList.add('on');
+    PS.puColor = null; PS.puColorExtra = 0; PS.puColorNone = true;
+  } else {
+    PS.puColorNone = false;
+  }
+}
+
+function setPEEave(btn, mode) {
+  var wasOn = btn.classList.contains('on');
+  document.querySelectorAll('#pe_eave_btns .ps-xbtn').forEach(function(b){b.classList.remove('on');});
+  var inp = document.getElementById('pe_eave_input_wrap');
+  if(!wasOn) {
+    btn.classList.add('on');
+    PS.peEaveMode = mode;
+    if(inp) inp.style.display = 'none';
+    document.getElementById('ex_pe_eave').value = '';
+  } else {
+    PS.peEaveMode = null;
+    if(inp) inp.style.display = 'flex';
+  }
+}
+
+function setPUEave(btn, mode) {
+  document.querySelectorAll('#pu_eave_btns .ps-xbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  PS.puEaveMode = mode;
+  var inp = document.getElementById('pu_eave_input_wrap');
+  var lbl = document.getElementById('pu_eave_label');
+  if(mode==='full'||mode==='none') {
+    if(inp) inp.style.display='none';
+  } else {
+    if(inp) inp.style.display='flex';
+    if(lbl) lbl.textContent = (mode==='head') ? 'เว้นหัว' : 'เว้นชาย';
+    document.getElementById('ex_pu_eave').value='';
+  }
+}
+
+// ============================================================
+// PICKUP NOTE
+// ============================================================
+function setJobSite(btn, mode) {
+  var wasOn = btn.classList.contains('on');
+  document.querySelectorAll('#loc_btn_store,#loc_btn_cust,#loc_btn_custom').forEach(function(b){b.classList.remove('on');});
+  var customWrap = document.getElementById('loc_custom_wrap');
+  var preview    = document.getElementById('loc_preview');
+
+  if(wasOn) {
+    // toggle off
+    S.jobSite = null;
+    customWrap.style.display='none';
+    preview.style.display='none';
+    return;
+  }
+
+  btn.classList.add('on');
+
+  if(mode==='store') {
+    S.jobSite = 'รับหน้าร้าน';
+    customWrap.style.display='none';
+    preview.style.display='block';
+    preview.textContent='📍 รับหน้าร้าน';
+  } else if(mode==='customer') {
+    var addr = S.customer ? (S.customer.address||'') : '';
+    S.jobSite = addr || '(ยังไม่ได้เลือกลูกค้า)';
+    customWrap.style.display='none';
+    preview.style.display='block';
+    preview.textContent='📍 '+S.jobSite;
+  } else {
+    customWrap.style.display='block';
+    preview.style.display='none';
+    S.jobSite = document.getElementById('jobSiteCustom').value.trim() || null;
+  }
+}
+
+function updateJobSite() {
+  var val = document.getElementById('jobSiteCustom').value.trim();
+  S.jobSite = val || null;
+}
+
+function togglePickupNote() {
+  var checked = document.getElementById('chk_pickup').checked;
+  document.getElementById('pickup_note_box').classList.toggle('hidden', !checked);
+  S.pickupNote = checked;
+}
+
+// ============================================================
+// SCREW SUGGEST
+// ============================================================
+// คำนวณสกรูแนะนำ
+function calcScrewSuggest(lonId, isColor, puSize, totalQty) {
+  if(!lonId) return null;
+  var LON_WIDTH = {'760':0.76,'750':0.75,'300':0.30,'860':0.86,'914':0.914,'333':0.30,'444':0.26};
+  var width = LON_WIDTH[lonId]||0.76;
+  var area = Math.round(totalQty * width * 100) / 100;
+
+  // ลอนที่ไม่มีสกรู
+  if(['860','914','333','444'].indexOf(lonId)!==-1) return null;
+
+  var screwSize, screwPerSqm, packType;
+
+  if(lonId==='300') {
+    // สเนปล็อค
+    screwSize='6หุน'; screwPerSqm=4;
+    var total = Math.ceil(area * screwPerSqm);
+    if(total<10) return null;
+    var boxes = Math.floor(total/350);
+    var bags50 = Math.ceil((total - boxes*350)/50);
+    var desc = area.toFixed(2)+' ตรม. × '+screwPerSqm+' = '+total+' ตัว';
+    var packs = [];
+    if(boxes>0) packs.push(boxes+' กล่อง (350 ตัว)');
+    if(bags50>0) packs.push(bags50+' ถุง (50 ตัว)');
+    return {desc:desc, packs:packs, size:'6หุน', isColor:false, lonId:lonId, total:total};
+  }
+
+  // ลอน 760 / 750
+  if(puSize==='50'||puSize==='50p') screwSize='4';
+  else if(puSize==='25') screwSize='3';
+  else screwSize='2';
+
+  screwPerSqm=3;
+  var total2 = Math.ceil(area * screwPerSqm);
+  if(total2<10) return null;
+  var bags = Math.ceil(total2/100);
+  var desc2 = area.toFixed(2)+' ตรม. × '+screwPerSqm+' = '+total2+' ตัว → '+bags+' ถุง (100 ตัว)';
+  return {desc:desc2, bags:bags, size:screwSize, isColor:isColor, lonId:lonId, total:total2};
+}
+
+function showScrewSuggest(lonId, isColor, puSize, totalQty, lonLabel) {
+  var result = calcScrewSuggest(lonId, isColor, puSize, totalQty);
+  var wrap = document.getElementById('screw_suggest_wrap');
+  var btns = document.getElementById('screw_suggest_btns');
+  if(!result || !wrap || !btns) return;
+
+  var sz = result.size;
+  var bags = result.bags||1;
+  var items = [];
+
+  if(lonId==='300') {
+    items.push({id:'SC-6HUN-STEEL', name:'สกรูแปเหล็ก 6หุน หัวบัททอน', bags:bags});
+    items.push({id:'SC-6HUN-WOOD',  name:'สกรูแปไม้ 6หุน หัวบัททอน',   bags:bags});
+  } else {
+    items.push({id:'SC-'+sz+'IN',      name:'สกรูแปเหล็ก '+sz+' นิ้ว',         bags:bags});
+    items.push({id:'SC-'+sz+'IN-WOOD', name:'สกรูแปไม้ '+sz+' นิ้ว',            bags:bags});
+    if(isColor && (sz==='2'||sz==='3')) {
+      items.push({id:'SC-'+sz+'IN-HEAD', name:'สกรูแปเหล็ก '+sz+' นิ้ว หัวสี', bags:bags});
+    }
+  }
+
+  // หาราคาจาก products
+  items.forEach(function(item){
+    var p = S.products.find(function(x){ return x['รหัสสินค้า']===item.id; });
+    item.price = p ? (parseFloat(p['ราคา/หน่วย'])||0) : 0;
+    item.unit = p ? (p['หน่วย']||'ถุง') : 'ถุง';
+    item.note = result.desc;
+  });
+  window._suggestItems = items;
+
+  btns.innerHTML = items.map(function(item,idx){
+    var total = item.bags * item.price;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px">' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600">'+item.name+'</div>' +
+        '<div style="font-size:11px;color:var(--text3)">'+result.desc+'</div>' +
+      '</div>' +
+      '<input type="number" value="'+item.bags+'" min="1" style="width:52px;text-align:right" id="sugQty'+idx+'">' +
+      '<span style="font-size:12px;color:var(--text2)">ถุง</span>' +
+      (item.price>0 ? '<span style="font-size:12px;color:var(--accent2);min-width:50px">฿'+(item.bags*item.price).toLocaleString()+'</span>' : '') +
+      '<button class="btn btn-success btn-sm" onclick="addSuggestedScrew('+idx+')">+ เพิ่ม</button>' +
+    '</div>';
+  }).join('');
+
+  switchPTab(3);
+  wrap.classList.remove('hidden');
+}
+
+function addSuggestedScrew(idx) {
+  var item = window._suggestItems[idx];
+  var qty = parseInt(document.getElementById('sugQty'+idx).value)||1;
+  S.items.push({
+    id:item.id, name:item.name, qty:qty, unit:(item.unit||'ถุง'),
+    pricePerUnit:item.price, total:qty*item.price, note:''
+  });
+  renderOrder();
+  showToast('เพิ่ม '+item.name,'success');
+  // mark ปุ่มว่าเพิ่มแล้ว
+  var btn = document.querySelector('#screw_suggest_btns > div:nth-child('+(idx+1)+') button.btn-success');
+  if(btn){ btn.textContent='✅ เพิ่มแล้ว'; btn.disabled=true; }
+}
+
+function addFreeItem() {
+  var name = document.getElementById('freeItemName').value.trim();
+  var price = parseFloat(document.getElementById('freeItemPrice').value)||0;
+  var unit = document.getElementById('freeItemUnit').value||'ชิ้น';
+  if (!name) { showToast('กรุณากรอกชื่อสินค้า','error'); return; }
+  S.items.push({id:'',name:name,qty:1,unit:unit,pricePerUnit:price,total:price,note:''});
+  document.getElementById('freeItemName').value='';
+  document.getElementById('freeItemPrice').value='';
+  document.getElementById('freeItemUnit').value='';
+  renderOrder();
+}
+
+// ============================================================
+// ORDER
+// ============================================================
+function renderOrder() {
+  var empty=document.getElementById('orderEmpty');
+  var wrap=document.getElementById('orderTableWrap');
+  document.getElementById('itemCount').textContent=S.items.length+' รายการ';
+  if (!S.items.length) { empty.classList.remove('hidden'); wrap.classList.add('hidden'); calcTotal(); return; }
+  empty.classList.add('hidden'); wrap.classList.remove('hidden');
+  document.getElementById('orderBody').innerHTML = S.items.map(function(item,idx){
+    var noteLines = (item.note||'').split('\n').filter(function(l){
+      return l.trim().length > 0;
+    });
+    var noteHtml = noteLines.map(function(l){
+      return '<div style="font-size:12px;color:var(--accent2);margin-top:1px">'+l+'</div>';
+    }).join('');
+    var isFirst = idx===0;
+    var isLast  = idx===S.items.length-1;
+    return '<tr>' +
+      '<td><div style="font-weight:600;font-size:13px">'+item.name+'</div>'+noteHtml+'</td>'+
+      '<td><input type="number" value="'+item.qty+'" min="0" step="0.1" onchange="updateItem('+idx+',\'qty\',this.value)"></td>'+
+      '<td style="color:var(--text3);font-size:13px">'+item.unit+'</td>'+
+      '<td><input type="number" value="'+item.pricePerUnit+'" min="0" onchange="updateItem('+idx+',\'pricePerUnit\',this.value)" style="width:80px"></td>'+
+      '<td style="font-weight:600;color:var(--accent2)">฿'+item.total.toLocaleString()+'</td>'+
+      '<td style="white-space:nowrap">'+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+          '<button onclick="moveItem('+idx+',-1)" style="background:none;border:none;cursor:pointer;color:'+(isFirst?'var(--border)':'var(--text3)')+';font-size:13px;padding:1px 4px;line-height:1" '+(isFirst?'disabled':'')+'>▲</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="removeItem('+idx+')" style="padding:4px 8px">✕</button>'+
+          '<button onclick="moveItem('+idx+',1)"  style="background:none;border:none;cursor:pointer;color:'+(isLast?'var(--border)':'var(--text3)')+';font-size:13px;padding:1px 4px;line-height:1" '+(isLast?'disabled':'')+'>▼</button>'+
+        '</div>'+
+      '</td>'+
+      '</tr>';
+  }).join('');
+  calcTotal();
+}
+
+function updateItem(idx,field,val) {
+  S.items[idx][field]=parseFloat(val)||0;
+  S.items[idx].total=S.items[idx].qty*S.items[idx].pricePerUnit;
+  renderOrder();
+}
+function removeItem(idx){ S.items.splice(idx,1); renderOrder(); }
+function moveItem(idx, dir) {
+  var to = idx + dir;
+  if(to<0 || to>=S.items.length) return;
+  var tmp = S.items[idx];
+  S.items[idx] = S.items[to];
+  S.items[to] = tmp;
+  renderOrder();
+}
+
+function calcTotal() {
+  var sub = S.items.reduce(function(s,i){return s+i.total;},0);
+  S.shipping  = parseFloat((document.getElementById('shippingCost')||{}).value)||0;
+  S.discount  = parseFloat((document.getElementById('discountAmount')||{}).value)||0;
+  var total = sub + S.shipping - S.discount;
+  if(total<0) total=0;
+  var el=document.getElementById('grandTotalDisplay');
+  if(el) el.textContent='฿'+total.toLocaleString();
+  // แสดง discount hint ถ้ามีส่วนลด
+  var vatEl=document.getElementById('vatDisplay');
+  if(vatEl) {
+    var hints = [];
+    if(S.discount>0) hints.push('ส่วนลด -฿'+S.discount.toLocaleString());
+    if(S.quotationType==='company'){
+      var bv=Math.round(total/1.07*100)/100, vat=Math.round((total-bv)*100)/100;
+      hints.push('ก่อน VAT: ฿'+bv.toLocaleString()+' | VAT 7%: ฿'+vat.toLocaleString());
+    }
+    if(hints.length){ vatEl.classList.remove('hidden'); vatEl.textContent=hints.join(' | '); }
+    else vatEl.classList.add('hidden');
+  }
+  return total;
+}
+
+// suggest functions removed (replaced by new product selector)
+
+// ============================================================
+// PAYMENT
+// ============================================================
+function selectMethod(method) {
+  S.payMethod=method;
+  ['Cash','Transfer','Site','Cheque'].forEach(function(m){
+    var el=document.getElementById('method'+m);
+    if(el) el.classList.toggle('selected', method===m.toLowerCase());
+  });
+  document.getElementById('cashCalc').style.display = method==='cash' ? 'block' : 'none';
+}
+
+function calcChange() {
+  var total=calcTotal();
+  var rec=parseFloat(document.getElementById('cashReceived').value)||0;
+  var ch=rec-total;
+  var el=document.getElementById('cashChange');
+  el.textContent='฿'+Math.max(0,ch).toLocaleString();
+  el.style.color=ch<0?'var(--red)':'var(--green)';
+}
+
+function row(l,v){ return '<div class="summary-row"><span class="lbl">'+l+'</span><span class="val">'+v+'</span></div>'; }
+
+function renderStep3Summary() {
+  var total=calcTotal(), sub=S.items.reduce(function(s,i){return s+i.total;},0);
+  var isC=S.quotationType==='company';
+  var bv=isC?Math.round(total/1.07*100)/100:total, vat=isC?Math.round((total-bv)*100)/100:0;
+  var c=S.customer;
+  document.getElementById('step3Summary').innerHTML =
+    row('ลูกค้า',(c.prefix||'')+c.firstName+' '+(c.lastName||'')) +
+    row('ประเภทใบ',isC?'ใบกำกับภาษี (นิติ)':'ใบเสนอราคา (บุคคล)') +
+    (S.jobSite ? row('หน้างาน', S.jobSite) : '') +
+    row('รายการ',S.items.length+' รายการ') +
+    row('ยอดสินค้า','฿'+sub.toLocaleString()) +
+    (S.shipping?row('ค่าขนส่ง','฿'+S.shipping.toLocaleString()):'') +
+    (S.discount?row('ส่วนลด','<span style="color:var(--green)">-฿'+S.discount.toLocaleString()+'</span>'):'') +
+    (isC?row('ก่อน VAT','฿'+bv.toLocaleString())+row('VAT 7%','฿'+vat.toLocaleString()):'') +
+    '<div class="summary-row total"><span class="lbl">ยอดรวมทั้งหมด</span><span class="val">฿'+total.toLocaleString()+'</span></div>';
+}
+
+function renderFinalSummary() {
+  var total=calcTotal(), sub=S.items.reduce(function(s,i){return s+i.total;},0);
+  var isC=S.quotationType==='company';
+  var bv=isC?Math.round(total/1.07*100)/100:total, vat=isC?Math.round((total-bv)*100)/100:0;
+  var c=S.customer;
+  document.getElementById('qtNumberFinal').textContent=S.quotationNo||'—';
+  if(!USE_MOCK) document.getElementById('mockNote').style.display='none';
+  var html=row('เลขที่','<span class="qt-number">'+S.quotationNo+'</span>') +
+    row('ลูกค้า',(c.prefix||'')+c.firstName+' '+(c.lastName||'')) +
+    row('โทร',c.tel||'—') +
+    row('หน้างาน', S.jobSite || c.address || 'รับหน้าร้าน') +
+    '<div style="height:1px;background:var(--border);margin:8px 0"></div>';
+  S.items.forEach(function(item){
+    html+=row(item.name,item.qty+' '+item.unit+' × ฿'+item.pricePerUnit.toLocaleString()+' = ฿'+item.total.toLocaleString());
+  });
+  if(S.shipping) html+=row('ค่าขนส่ง','฿'+S.shipping.toLocaleString());
+  if(S.discount) html+=row('ส่วนลด','<span style="color:var(--green)">-฿'+S.discount.toLocaleString()+'</span>');
+  html+='<div class="summary-row total"><span class="lbl">ยอดรวม</span><span class="val">฿'+total.toLocaleString()+'</span></div>';
+  if(isC) html+=row('ราคาสินค้า (excl.VAT)','฿'+bv.toLocaleString())+row('VAT 7%','฿'+vat.toLocaleString());
+  var methodLabel = {cash:'เงินสด',transfer:'โอนเงิน',site:'รับเงินหน้างาน',cheque:'เช็ค'}[S.payMethod]||S.payMethod||'—';
+  html+=row('วิธีชำระ',methodLabel)+row('สถานะ',S.payStatus);
+  if(S.deposit) html+=row('มัดจำ','฿'+S.deposit.toLocaleString());
+  if(S.pickupNote) html+='<div style="margin-top:10px;padding:10px;background:rgba(245,158,11,.1);border:1px solid var(--yellow);border-radius:8px;font-size:13px;color:var(--yellow)">*รับของหน้าร้าน กรุณาเตรียมเชือกสำหรับผูกสินค้ามาด้วยครับ</div>';
+  document.getElementById('finalSummary').innerHTML=html;
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+function saveQuotation() {
+  var btn=document.getElementById('saveBtn');
+  btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...';
+  var total=calcTotal(), isC=S.quotationType==='company';
+  var bv=isC?Math.round(total/1.07*100)/100:total, vat=isC?Math.round((total-bv)*100)/100:0;
+  var customer=isC?{
+    companyName:document.getElementById('companyName').value,
+    taxAddress:document.getElementById('taxAddress').value,
+    taxId:document.getElementById('taxId').value,
+    tel:S.customer?S.customer.tel:'',
+  }:{
+    prefix:S.customer.prefix||'', firstName:S.customer.firstName||'',
+    lastName:S.customer.lastName||'', tel:S.customer.tel||'', address:S.customer.address||'',
+  };
+  api('saveQuotation', {
+    type:S.quotationType, quotationNo:S.quotationNo, sheetId:S.sheetId,
+    customer:customer, items:S.items,
+    totals:{amount:total,discount:0,afterDiscount:total,beforeVat:bv,vat:vat,grandTotal:total},
+    payment:{method:{cash:'เงินสด',transfer:'โอนเงิน',site:'รับเงินหน้างาน',cheque:'เช็ค'}[S.payMethod]||S.payMethod, status:S.payStatus, deposit:S.deposit},
+    salesName:S.user?S.user.name:'',
+    jobSite:S.jobSite||'',
+    pickupNote:S.pickupNote||false,
+    specialNote:S.specialNote||'',
+  }, function(r) {
+    showToast('✅ บันทึกสำเร็จ! เลขที่: '+r.quotationNo,'success');
+    btn.textContent='✅ บันทึกแล้ว';
+  }, function(msg) {
+    btn.disabled=false; btn.textContent='💾 บันทึกใบเสนอราคา';
+  });
+}
+
+// ============================================================
+// NEW ORDER + UTILS
+// ============================================================
+function newOrder() {
+  S={user:S.user,products:S.products,customer:null,quotationType:null,quotationNo:null,sheetId:null,items:[],payMethod:null,payStatus:'รอชำระ',deposit:0,shipping:0,discount:0,pickupNote:false,jobSite:null,specialNote:''};
+  clearCustomer();
+  var chkp=document.getElementById('chk_pickup'); if(chkp){chkp.checked=false;}
+  document.getElementById('pickup_note_box').classList.add('hidden');
+  var sw=document.getElementById('screw_suggest_wrap'); if(sw) sw.classList.add('hidden');
+  // reset location
+  document.querySelectorAll('#loc_btn_store,#loc_btn_cust,#loc_btn_custom').forEach(function(b){b.classList.remove('on');});
+  var cw=document.getElementById('loc_custom_wrap'); if(cw) cw.style.display='none';
+  var lp=document.getElementById('loc_preview');    if(lp) lp.style.display='none';
+  var jsc=document.getElementById('jobSiteCustom'); if(jsc) jsc.value='';
+  var sni=document.getElementById('specialNoteInput'); if(sni) sni.value='';
+  document.getElementById('typePerson').classList.remove('selected');
+  document.getElementById('typeCompany').classList.remove('selected');
+  document.getElementById('companyFields').classList.add('hidden');
+  document.getElementById('shippingCost').value='0';
+  var dc=document.getElementById('discountAmount'); if(dc) dc.value='0';
+  document.getElementById('depositAmount').value='0';
+  document.getElementById('payStatus').selectedIndex=0;
+  ['methodCash','methodTransfer','methodSite','methodCheque'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('selected');
+  });
+  document.getElementById('cashCalc').style.display='none';
+  document.getElementById('saveBtn').disabled=false;
+  document.getElementById('saveBtn').textContent='💾 บันทึกใบเสนอราคา';
+  renderOrder(); showStep(1);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.addEventListener('click',function(e){ if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('show'); });
+
+function showToast(msg,type) {
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(type||'');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+</script>
+</body>
+</html>
